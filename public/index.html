@@ -51,9 +51,9 @@
   </div>
   <div id="aviso" class="aviso" hidden></div>
   <details id="encuesta" class="encuesta" hidden></details>
+  <details id="cajaAnonima" class="encuesta caja-anonima" hidden></details>
   <!-- Lo que ve el público: no hay chat, sólo el destacado (un rato) y las encuestas -->
   <section id="panelPublico" class="panel-publico" hidden>
-    <div id="avisoPublico" class="destacado-publico aviso-prod" hidden></div>
     <div id="destacadoPublico" class="destacado-publico" hidden></div>
     <div class="bienvenida">
       <div class="icono-grande">📺</div>
@@ -87,6 +87,11 @@
   <div id="encActual"></div>
   <form id="formEncuesta">
     <h3>Nueva</h3>
+    <div class="tipo-enc" id="encTipo">
+      <button type="button" data-tipo="opciones" class="activo">📊 Con opciones</button>
+      <button type="button" data-tipo="anonima">📮 Caja anónima</button>
+    </div>
+    <p id="encTipoNota" class="nota-enc" hidden>El público responde con sus palabras, sin nombre. Las respuestas no salen en la pantalla: las leen los conductores y productores en su chat.</p>
     <input id="encPregunta" placeholder="La pregunta (ej: ¿Quién tiene razón?)" maxlength="140" required>
     <div id="encOpciones"></div>
     <button type="button" id="encMas" class="secundario">+ Otra opción</button>

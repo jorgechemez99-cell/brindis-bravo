@@ -152,6 +152,16 @@
       el.querySelector(".dentro").innerHTML = "";
       return;
     }
+    if (e.tipo === "anonima") {
+      // Caja anónima: sólo la pregunta y cuántos respondieron (las respuestas las lee el equipo).
+      el.querySelector(".dentro").innerHTML =
+        `<div class="preg">📮 ${esc(e.pregunta)}</div>` +
+        `<div class="pie pie-anonima"><span class="estado">${e.estado === "abierta" ? "Respondé desde tu celu · es anónimo" : "Ya no se reciben respuestas"}</span><span class="total">000 respuestas</span></div>`;
+      el.hidden = false;
+      ajustarCajas(); // se mide con el texto más largo posible
+      pintarRespuestas(e.respuestas || 0);
+      return;
+    }
     el.querySelector(".dentro").innerHTML =
       `<div class="preg">${esc(e.pregunta)}</div>` +
       e.opciones.map((o) => `<div class="opc"><div class="barra"></div><span class="txt">${esc(o)}</span><span class="pct">100%</span></div>`).join("") +
@@ -161,6 +171,11 @@
     const conteos = e.conteos || e.opciones.map(() => 0);
     pintarVotos(conteos.map(() => 0)); // las barras arrancan de cero y crecen
     requestAnimationFrame(() => requestAnimationFrame(() => pintarVotos(conteos)));
+  }
+
+  function pintarRespuestas(n) {
+    const t = $("encuesta").querySelector(".total");
+    if (t) t.textContent = n + (n === 1 ? " respuesta" : " respuestas");
   }
 
   function pintarVotos(c) {
@@ -219,13 +234,16 @@
         ponerDestacado(m.d);
         break;
       case "encuesta":
-        if (encuesta && m.e && encuesta.id === m.e.id && encuesta.opciones.length === m.e.opciones.length) {
+        if (encuesta && m.e && m.e.tipo !== "anonima" && encuesta.id === m.e.id && encuesta.opciones.length === m.e.opciones.length) {
           encuesta = m.e; // misma encuesta (p. ej. se cerró): sólo se actualiza
           pintarVotos(m.e.conteos);
         } else ponerEncuesta(m.e);
         break;
       case "votos":
         if (encuesta && encuesta.id === m.encuesta) pintarVotos(m.conteos);
+        break;
+      case "respuestas":
+        if (encuesta && encuesta.id === m.encuesta) pintarRespuestas(m.n);
         break;
     }
   }

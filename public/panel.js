@@ -238,6 +238,21 @@
         }
         break;
       }
+      case "respuesta":
+        // Si las respuestas de esa caja están abiertas, la nueva aparece arriba.
+        if (respuestasAbiertas[m.encuesta]) {
+          respuestasAbiertas[m.encuesta].unshift(m.r);
+          pintarEncuestas();
+        }
+        break;
+      case "respuestas": {
+        const e = S.encuestas.find((x) => x.id === m.encuesta);
+        if (e) {
+          e.respuestas = m.n;
+          pintarEncuestas();
+        }
+        break;
+      }
       case "salir":
         mostrarLogin();
         break;
@@ -462,9 +477,19 @@
 
   $("encAgregar").addEventListener("click", () => agregarOpcion());
 
+  // 📊 Encuesta con opciones, o 📮 caja anónima (pregunta abierta, sin opciones).
+  const tipoEnc = () => document.querySelector("input[name=encTipo]:checked").value;
+  function ponerTipo(tipo) {
+    document.querySelector(`input[name=encTipo][value="${tipo}"]`).checked = true;
+    $("encConOpciones").hidden = tipo === "anonima";
+    $("encPregunta").placeholder = tipo === "anonima" ? "¿Qué le preguntarías al invitado?" : "¿Quién tiene razón?";
+  }
+  document.querySelectorAll("input[name=encTipo]").forEach((r) => r.addEventListener("change", () => ponerTipo(tipoEnc())));
+
   function limpiarFormEncuesta() {
     editandoEnc = null;
     $("encPregunta").value = "";
+    ponerTipo("opciones");
     ponerOpciones(["", ""]);
     $("tituloFormEnc").textContent = "Nueva encuesta";
     $("encCancelar").hidden = true;
@@ -476,6 +501,7 @@
   $("formEnc").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const datos = {
+      tipo: tipoEnc(),
       pregunta: $("encPregunta").value,
       opciones: [...$("encOpciones").querySelectorAll("input")].map((i) => i.value.trim()).filter(Boolean),
     };
@@ -487,16 +513,19 @@
     } catch {}
   });
 
+  const respuestasAbiertas = {}; // caja anónima -> respuestas que se están mirando
+
   function pintarEncuestas() {
     const lista = [...S.encuestas].sort((a, b) => (a.programa === S.aire ? -1 : 0) - (b.programa === S.aire ? -1 : 0) || b.id - a.id);
     const html = lista.map((e) => {
       const enPantalla = S.encuestaPantalla === e.id;
+      const anonima = e.tipo === "anonima";
 
       const total = (e.conteos || []).reduce((a, b) => a + b, 0);
       const estado = enPantalla
         ? e.estado === "abierta"
-          ? '<span class="chip rojo">EN PANTALLA · votando</span>'
-          : '<span class="chip rojo">EN PANTALLA · resultados</span>'
+          ? `<span class="chip rojo">EN PANTALLA · ${anonima ? "respondiendo" : "votando"}</span>`
+          : `<span class="chip rojo">EN PANTALLA · ${anonima ? "cerrada" : "resultados"}</span>`
         : { borrador: '<span class="chip">preparada</span>', abierta: '<span class="chip amarillo">abierta</span>', cerrada: '<span class="chip">cerrada</span>' }[e.estado];
       const b = [];
       const dis = "";
@@ -505,16 +534,25 @@
         b.push('<button data-acc="editar" class="boton chico secundario">Editar</button>');
         b.push('<button data-acc="borrar" class="boton chico peligro">Borrar</button>');
       } else if (enPantalla && e.estado === "abierta") {
-        b.push(`<button data-acc="cerrar" class="boton chico"${dis}>Cerrar votación</button>`);
+        b.push(`<button data-acc="cerrar" class="boton chico"${dis}>${anonima ? "Dejar de recibir respuestas" : "Cerrar votación"}</button>`);
         b.push(`<button data-acc="ocultar" class="boton chico secundario"${dis}>Ocultar</button>`);
       } else if (enPantalla) {
         b.push(`<button data-acc="ocultar" class="boton chico"${dis}>Ocultar</button>`);
-        b.push(`<button data-acc="abrir" class="boton chico secundario"${dis}>Reabrir votación</button>`);
+        b.push(`<button data-acc="abrir" class="boton chico secundario"${dis}>${anonima ? "Volver a abrir" : "Reabrir votación"}</button>`);
       } else {
-        b.push(`<button data-acc="mostrar" class="boton chico"${dis}>Mostrar resultados</button>`);
-        b.push(`<button data-acc="abrir" class="boton chico secundario"${dis}>Reabrir votación</button>`);
+        b.push(`<button data-acc="mostrar" class="boton chico"${dis}>${anonima ? "Mostrar la pregunta" : "Mostrar resultados"}</button>`);
+        b.push(`<button data-acc="abrir" class="boton chico secundario"${dis}>${anonima ? "Volver a abrir" : "Reabrir votación"}</button>`);
         b.push('<button data-acc="borrar" class="boton chico peligro">Borrar</button>');
       }
+      if (anonima && e.estado !== "borrador") {
+        b.push(`<button data-acc="respuestas" class="boton chico secundario">${respuestasAbiertas[e.id] ? "Ocultar respuestas" : "Ver respuestas"}</button>`);
+      }
+      const verResp = respuestasAbiertas[e.id];
+      const detalle = anonima
+        ? verResp
+          ? `<ul class="respuestas">${verResp.map((r) => `<li>${esc(r.texto)}<span class="nota">${hora(r.ts)}</span></li>`).join("") || '<li class="vacio">Todavía no respondió nadie.</li>'}</ul>`
+          : ""
+        : null;
       const opciones = e.opciones
         .map((o, i) => {
           if (!e.conteos) return `<div class="opc"><span>${esc(o)}</span></div>`;
@@ -524,8 +562,9 @@
         .join("");
       return (
         `<div class="tarjeta enc${enPantalla ? " en-pantalla" : ""}" data-id="${e.id}">` +
-        `<div class="cabeza"><span class="chip">${esc(nombrePrograma(e.programa))}</span>${estado}${e.conteos ? `<span class="nota">${total} votos</span>` : ""}</div>` +
-        `<div class="pregunta">${esc(e.pregunta)}</div>${opciones}<div class="fila-botones">${b.join("")}</div></div>`
+        `<div class="cabeza"><span class="chip">${anonima ? "📮 Caja anónima" : "📊 Encuesta"}</span><span class="chip">${esc(nombrePrograma(e.programa))}</span>${estado}` +
+        (anonima ? `<span class="nota">${e.respuestas || 0} respuestas</span>` : e.conteos ? `<span class="nota">${total} votos</span>` : "") +
+        `</div><div class="pregunta">${esc(e.pregunta)}</div>${anonima ? detalle : opciones}<div class="fila-botones">${b.join("")}</div></div>`
       );
     });
     const final = html.join("") || '<p class="vacio">Todavía no hay encuestas. Armalas antes del programa y lanzalas cuando quieras.</p>';
@@ -542,13 +581,27 @@
     else if (a === "cerrar") accion("encuesta/cerrar", { id }, "Votación cerrada");
     else if (a === "mostrar") accion("encuesta/mostrar", { id });
     else if (a === "ocultar") accion("encuesta/ocultar");
-    else if (a === "borrar" && confirm("¿Borrar esta encuesta y sus votos?")) accion("encuesta/borrar", { id });
+    else if (a === "borrar" && confirm(e && e.tipo === "anonima" ? "¿Borrar esta caja anónima y sus respuestas?" : "¿Borrar esta encuesta y sus votos?")) accion("encuesta/borrar", { id });
+    else if (a === "respuestas") {
+      if (respuestasAbiertas[id]) {
+        delete respuestasAbiertas[id];
+        pintarEncuestas();
+      } else
+        fetch("/api/respuestas?encuesta=" + id)
+          .then((r) => r.json())
+          .then((d) => {
+            respuestasAbiertas[id] = d.respuestas || [];
+            pintarEncuestas();
+          })
+          .catch(() => toast("Sin conexión", true));
+    }
     else if (a === "editar" && e) {
       editandoEnc = id;
       $("encPrograma").value = String(e.programa);
       $("encPrograma").disabled = true;
       $("encPregunta").value = e.pregunta;
-      ponerOpciones(e.opciones);
+      ponerTipo(e.tipo || "opciones");
+      ponerOpciones(e.opciones.length ? e.opciones : ["", ""]);
       $("tituloFormEnc").textContent = "Editar encuesta";
       $("encCancelar").hidden = false;
       $("formEnc").scrollIntoView({ behavior: "smooth" });

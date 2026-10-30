@@ -480,6 +480,25 @@ body.sin-control #cajaDestacado button {
   margin-bottom: 8px;
 }
 
+.enc .respuestas {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.enc .respuestas li {
+  padding: 8px 0;
+  border-top: 1px solid var(--borde);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.enc .respuestas .nota {
+  margin-left: 8px;
+}
+
 .enc .pregunta {
   font-size: 17px;
   font-weight: 800;

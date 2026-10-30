@@ -32,7 +32,7 @@ Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no 
 
 - **Un solo QR para todos**: abre la puerta de entrada y a cada uno lo lleva a su lugar según su rol (público, conductor, productor o admin). Sin bajar nada.
 - **Cuentas con apodo y clave**: cada apodo es de una sola persona y cada celular puede crear una sola cuenta, así nadie aparece con dos nombres.
-- **Cada rol ve lo suyo**: el público no ve el chat; tiene su cajita para escribir, ve unos segundos los destacados y los avisos 📢 de la producción, y las encuestas (que le saltan solas). Conductores y productores ven el chat completo.
+- **Cada rol ve lo suyo**: el público no ve el chat; tiene su cajita para escribir, ve unos segundos los destacados y los avisos 📢 de la producción, y las encuestas y cajas anónimas (que le saltan solas). Conductores y productores ven el chat completo.
 - **Íconos por rol** al lado del nombre: 🎙️ conducción, 🎬 producción, 👑 admin, y 📢 para los mensajes de la producción.
 - **Pantalla transparente** encima de lo que se proyecta, con el chat, un mensaje destacado, la encuesta y el QR. Cada caja se puede mover, agrandar, ocultar y cambiar de opacidad.
 - **App de escritorio** (Mac y Windows) que pone el chat encima de todo, con una botonera: **Editar** la pantalla ahí mismo con el mouse, **Usar la PC** normal viendo todo, y **Ocultar** todo de una.
@@ -40,6 +40,8 @@ Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no 
 - **Moderación desde el chat**: los productores tienen una ✕ en cada mensaje (con *Deshacer*), además de destacar, **silenciar** (5, 15 o 60 minutos), **vetar**, mandar **📢 mensajes de la producción** y **armar encuestas**, todo desde el celu.
 - **Panel de producción**: moderar, aprobar antes de mostrar, pausar, mensajes de la producción, encuestas, armado de la pantalla, QR para imprimir, equipo y programas.
 - **Encuestas en vivo** con resultados animados en pantalla.
+- **Caja anónima**: en vez de una encuesta, una pregunta abierta que el público responde con sus palabras y sin nombre. Las respuestas no salen en la pantalla: las leen conductores y productores en su chat.
+- **Avisos 📢 de la producción** que saltan solos como destacado en la pantalla y en los celus.
 - **Mensajes fijos** (opcional): quedan en pantalla hasta que los empujen otros nuevos.
 - **Blindado**: si se corta internet, todo se reconecta solo y lo que se escribió mientras tanto sale cuando vuelve. Nada se duplica.
 - **Sin filtros de palabras**: sólo un máximo de 280 caracteres por mensaje.
@@ -59,9 +61,9 @@ Todos entran por el mismo QR (o por la dirección del sitio). El público crea s
 
 | Rol | A dónde va | Qué ve | Qué puede hacer |
 |---|---|---|---|
-| **Público** | Su cajita para escribir | No ve el chat. Ve si su mensaje salió, los destacados y los avisos 📢 de la producción durante unos segundos ("⭐ ¡Destacaron tu mensaje!" si es el suyo) y las encuestas, que le saltan en el medio de la pantalla | Escribir y votar |
-| 🎙️ **Conductor** | El chat completo | Todo lo que escribe el público, en vivo, para leerlo sin darse vuelta a mirar la pantalla | Escribir y **destacar** mensajes (tocando el mensaje) |
-| 🎬 **Productor** | El chat completo, con herramientas | Todo | Lo del conductor, más ✕ borrar (con *Deshacer*), silenciar, vetar, **📢** mandar como producción, **📊 Encuestas** (armar, lanzar, cerrar). Tiene un link al **Panel** |
+| **Público** | Su cajita para escribir | No ve el chat. Ve si su mensaje salió, los destacados y los avisos 📢 de la producción durante unos segundos ("⭐ ¡Destacaron tu mensaje!" si es el suyo), y las encuestas y cajas anónimas, que le saltan en el medio de la pantalla | Escribir, votar y responder las cajas anónimas |
+| 🎙️ **Conductor** | El chat completo | Todo lo que escribe el público, en vivo, para leerlo sin darse vuelta a mirar la pantalla, y las respuestas de la **caja anónima** | Escribir y **destacar** mensajes (tocando el mensaje) |
+| 🎬 **Productor** | El chat completo, con herramientas | Todo, incluidas las respuestas de la caja anónima | Lo del conductor, más ✕ borrar (con *Deshacer*), silenciar, vetar, **📢** mandar como producción, **📊 Encuestas** (armar, lanzar y cerrar encuestas y cajas anónimas). Tiene un link al **Panel** |
 | 👑 **Admin** | El **panel** | Todo | Todo, incluido el equipo y los programas. Desde el panel, **💬 Chat** lo lleva al chat con las herramientas del productor |
 
 Los roles los asigna el admin en el panel (pestaña **Equipo**). Lo que escribe el equipo sale en la pantalla con el ícono de su rol.
@@ -82,8 +84,9 @@ Todo se hace desde el navegador, sin terminal.
 - Si cierra la página o vuelve otro día, sigue adentro (la sesión dura 30 días). Desde otro celular entra con **¿Ya tenés cuenta? Entrá acá**.
 - Escribe (hasta 280 caracteres, con una espera mínima entre mensajes que se ajusta en el panel) y lo que manda sale en la pantalla. Abajo le aparece "✓ Tu mensaje salió en la pantalla" (o por qué no salió, o que lo están revisando).
 - **No ve el chat**: ni lo que escribe el resto del público, ni lo que escriben conductores y productores. Eso está en la pantalla del lugar.
-- Cuando se **destaca** un mensaje, le aparece una tarjeta durante 15 segundos. Si es el suyo: "⭐ ¡Destacaron tu mensaje en la pantalla!".
-- Cuando la producción manda un **aviso 📢**, también le aparece como tarjeta durante 15 segundos.
+- Cuando se **destaca** un mensaje, le aparece una tarjeta durante 8 segundos. Si es el suyo: "⭐ ¡Destacaron tu mensaje en la pantalla!".
+- Cuando la producción manda un **aviso 📢**, salta solo como destacado: en la pantalla y como tarjeta en el celu.
+- Cuando se abre una **caja anónima**, le salta la pregunta con un lugar para responder. Nadie ve su nombre y la respuesta no sale en la pantalla.
 - Cuando se lanza una **encuesta**, le salta en el medio de la pantalla. Al votar se cierra sola y arriba quedan los resultados en vivo.
 - El chat completo lo ven los conductores y la producción, y la pantalla del lugar.
 
@@ -93,8 +96,9 @@ Todo se hace desde el navegador, sin terminal.
 
 - La **✕** de cada mensaje lo borra al instante, de la pantalla y de todos los celus. Abajo aparece **Deshacer** unos segundos, por si fue sin querer.
 - **Tocando un mensaje**: Destacar en la pantalla (o quitar el destacado), Borrar, Silenciar 5 min / 15 min / 1 hora, Vetar.
-- **📢** al lado de donde se escribe: prendido, lo que se manda sale como **mensaje de la producción**, resaltado en amarillo en la pantalla y en el chat del equipo, y le aparece 15 segundos en el celu a todo el público.
-- **📊 Encuestas**: armar una (pregunta y opciones) y **Lanzar ahora** o **Guardar para después**; lanzar las preparadas; **Cerrar la votación** y **Sacarla de la pantalla**.
+- **📢** al lado de donde se escribe: prendido, lo que se manda sale como **mensaje de la producción**, resaltado en amarillo y **salta solo como destacado** en la pantalla y en el celu de todo el público.
+- **📊 Encuestas**: armar una encuesta (pregunta y opciones) o una **📮 caja anónima** (sólo la pregunta) y **Lanzar ahora** o **Guardar para después**; lanzar las preparadas; cerrarla y **Sacarla de la pantalla**.
+- **📮 Respuestas**: cuando hay una caja anónima, arriba del chat aparece una tarjeta con todas las respuestas en vivo, sin nombres (la ven conductores y productores).
 
 **Desde el panel**, pestaña **Chat**: los mismos botones en cada mensaje, más:
 
@@ -121,7 +125,7 @@ Se puede hacer **directo sobre la pantalla real** con la app (**✏️ Editar**,
 - **En pantalla**: mostrar u ocultar el chat, la encuesta, el destacado, el QR, el título y el **contador de gente**.
 - **Los mensajes quedan hasta que los empujen otros nuevos**: prendido, los mensajes no se van por tiempo; sólo salen cuando llegan otros y no entran (la cantidad la marca *Mensajes a la vez*). Apagado, cada mensaje dura lo que diga *Cada mensaje queda* (45 s).
 - **Vista previa**: arrastrá cada recuadro para moverlo y tirá de bordes o esquinas para agrandarlo. En la encuesta y el destacado la letra se acomoda sola; el QR siempre queda cuadrado.
-- **Controles**: opacidad, fondos, letra, mensajes a la vez, duración de mensajes y del destacado, tamaño del QR, espera entre mensajes de una misma persona.
+- **Controles**: opacidad, fondos, letra, mensajes a la vez, duración de los mensajes, cuánto queda el destacado (10 s; en 0 queda hasta quitarlo), tamaño del QR, espera entre mensajes de una misma persona.
 - **Dirección que abre el QR**: si se deja vacía, el QR lleva a este mismo sitio. El QR para imprimir está en la pestaña **QR**.
 
 Todo se aplica en vivo.
@@ -173,6 +177,15 @@ Desde el chat del productor (**📊 Encuestas**) o desde la pestaña **Encuestas
 4. **Ocultar** cuando ya no hace falta.
 
 Se pueden reabrir y mostrar resultados de encuestas viejas.
+
+**📮 Caja anónima** (en el mismo lugar, eligiendo *Caja anónima* en vez de *Con opciones*):
+
+1. Se escribe sólo la pregunta (por ejemplo: "¿Qué le preguntarías al invitado?").
+2. **Lanzar**: en la pantalla sale la pregunta con un contador de respuestas, y al público le salta en el celu con un lugar para responder.
+3. Cada respuesta llega sin nombre al chat de conductores y productores (tarjeta 📮 arriba de todo) y al panel (**Ver respuestas**). En la pantalla no se muestran.
+4. **Dejar de recibir respuestas** la cierra; las respuestas se pueden seguir leyendo.
+
+Silenciados no pueden responder; las respuestas de los vetados no las ve nadie.
 
 ## Ensayo y noche del show
 

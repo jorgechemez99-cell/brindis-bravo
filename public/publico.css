@@ -756,6 +756,12 @@ body.conductor #lista li[data-id]:active {
   color: var(--acento);
 }
 
+.encuesta-cuerpo .pie {
+  color: var(--suave);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
 .encuesta-cuerpo h3 {
   font-size: 20px;
   margin: 4px 0 6px;
@@ -800,6 +806,83 @@ body.conductor #lista li[data-id]:active {
 
 .encuestas-hoja button.secundario {
   background: #262632;
+}
+
+.tipo-enc {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.encuestas-hoja .tipo-enc button {
+  margin: 0;
+  padding: 10px 6px;
+  font-size: 15px;
+  background: #1b1b24;
+  border: 1px solid var(--borde);
+}
+
+.encuestas-hoja .tipo-enc button.activo {
+  background: #3a1a28;
+  border-color: var(--acento);
+}
+
+.nota-enc {
+  font-size: 14px;
+  color: var(--suave);
+  margin: 0 0 10px;
+}
+
+/* 📮 caja anónima: responder (público) y leer las respuestas (equipo) */
+.resp-texto {
+  min-height: 84px;
+  resize: none;
+  margin: 8px 0;
+}
+
+.resp-enviar {
+  width: 100%;
+  font: inherit;
+  font-weight: 800;
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+  cursor: pointer;
+}
+
+.hoja .resp-enviar {
+  margin-top: 0;
+  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+}
+
+.caja-anonima {
+  border-color: #2d4a5a;
+  background: linear-gradient(180deg, #14222a, var(--tarjeta));
+}
+
+.caja-anonima .etiqueta {
+  color: #6cc8ff;
+}
+
+.respuestas {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.respuestas li {
+  padding: 8px 0;
+  border-top: 1px solid var(--borde);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.respuestas .hora {
+  display: block;
+  font-size: 12px;
+  color: var(--suave);
 }
 
 .enc-item {

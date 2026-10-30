@@ -38,7 +38,7 @@
   const rol = () => (yo && yo.rol) || "publico";
   const esModerador = () => rol() === "admin" || rol() === "productor";
   const veTodo = () => rol() !== "publico";
-  const DESTACADO_PUBLICO_MS = 15000; // cuánto le queda a la vista al público un destacado
+  const DESTACADO_PUBLICO_MS = 8000; // cuánto le queda a la vista al público un destacado (o un aviso 📢)
   const enRevision = new Set(); // ids de mensajes propios que esperan aprobación (vista del público)
 
   let tToast;
@@ -300,30 +300,21 @@
       return;
     }
     const mio = yo && d.autor === yo.autor;
-    el.className = "destacado-publico" + (mio ? " mio" : "");
-    el.innerHTML =
-      `<span class="etiqueta-dest">${mio ? "⭐ ¡Destacaron tu mensaje en la pantalla!" : "⭐ Destacado en la pantalla"}</span>` +
-      `<span class="nick" style="color:${d.prod ? "var(--acento2)" : colorDe(d.nick)}">${esc(d.nick)}</span><span class="txt">${esc(d.texto)}</span>`;
+    if (d.prod) {
+      // 📢 Aviso de la producción: salta solo como destacado.
+      el.className = "destacado-publico aviso-prod";
+      el.innerHTML = `<span class="etiqueta-dest">📢 ${esc(d.nick)}</span><span class="txt">${esc(d.texto)}</span>`;
+    } else {
+      el.className = "destacado-publico" + (mio ? " mio" : "");
+      el.innerHTML =
+        `<span class="etiqueta-dest">${mio ? "⭐ ¡Destacaron tu mensaje en la pantalla!" : "⭐ Destacado en la pantalla"}</span>` +
+        `<span class="nick" style="color:${colorDe(d.nick)}">${esc(d.nick)}</span><span class="txt">${esc(d.texto)}</span>`;
+    }
     el.hidden = false;
     tDestacado = setTimeout(() => {
       el.classList.add("sale");
       tDestacado = setTimeout(() => (el.hidden = true), 600);
     }, queda);
-  }
-
-  // 📢 Aviso de la producción: al público le aparece un rato, como un destacado.
-  let tAviso;
-  function mostrarAviso(m) {
-    const el = $("avisoPublico");
-    clearTimeout(tAviso);
-    el.className = "destacado-publico aviso-prod";
-    el.dataset.id = m.id;
-    el.innerHTML = `<span class="etiqueta-dest">📢 ${esc(m.nick)}</span><span class="txt">${esc(m.texto)}</span>`;
-    el.hidden = false;
-    tAviso = setTimeout(() => {
-      el.classList.add("sale");
-      tAviso = setTimeout(() => (el.hidden = true), 600);
-    }, DESTACADO_PUBLICO_MS);
   }
 
   // Al público, en vez de una lista, una línea que le dice cómo le fue a lo que mandó.
@@ -516,6 +507,16 @@
     );
   }
 
+  // 📮 Caja anónima: el público escribe su respuesta; nadie ve su nombre.
+  function htmlAnonima(e) {
+    if (e.estado !== "abierta") return '<div class="pie">Ya no se reciben respuestas.</div>';
+    return (
+      '<textarea class="resp-texto" maxlength="280" placeholder="Tu respuesta (es anónima)"></textarea>' +
+      '<button type="button" class="resp-enviar">Enviar respuesta anónima</button>' +
+      '<div class="pie">Nadie ve tu nombre. No sale en la pantalla: la leen los conductores.</div>'
+    );
+  }
+
   function pintarEncuesta() {
     const e = estado.encuesta;
     const el = $("encuesta");
@@ -526,14 +527,23 @@
       return;
     }
     const abierta = e.estado === "abierta";
-    el.innerHTML = `<summary><span class="etiqueta">${abierta ? "Encuesta en vivo" : "Resultados"}</span>${esc(e.pregunta)}</summary>` + htmlOpciones(e);
+    const anonima = e.tipo === "anonima";
+    const etiqueta = anonima ? "📮 Pregunta anónima" : abierta ? "Encuesta en vivo" : "Resultados";
+    const cuerpo = anonima ? htmlAnonima : htmlOpciones;
+    el.innerHTML = `<summary><span class="etiqueta">${etiqueta}</span>${esc(e.pregunta)}</summary>` + cuerpo(e);
     const clave = e.id + ":" + e.estado;
     // Al público, una encuesta nueva (o que se vuelve a abrir) le salta en el medio de la pantalla.
-    if (!veTodo() && abierta && miVoto == null && clave !== emergenteVista && !$("emergente").open) {
+    if (!veTodo() && abierta && (anonima || miVoto == null) && clave !== emergenteVista && !$("emergente").open) {
       emergenteVista = clave;
       $("emergente").showModal();
     }
-    if ($("emergente").open) $("emergenteCuerpo").innerHTML = `<span class="etiqueta">Encuesta en vivo</span><h3>${esc(e.pregunta)}</h3>` + htmlOpciones(e);
+    if ($("emergente").open) $("emergenteCuerpo").innerHTML = `<span class="etiqueta">${etiqueta}</span><h3>${esc(e.pregunta)}</h3>` + cuerpo(e);
+    // El equipo lee la caja anónima en su propia tarjeta (con las respuestas).
+    if (anonima && veTodo()) {
+      el.hidden = true;
+      encuestaVista = clave;
+      return;
+    }
     // Arriba queda la tarjeta: desplegada para el equipo, cerrada para el público (ya le saltó).
     if (clave !== encuestaVista) el.open = veTodo();
     encuestaVista = clave;
@@ -551,11 +561,70 @@
     // Después de votar, la que saltó se va sola (quedan los resultados arriba).
     if ($("emergente").open) setTimeout(() => $("emergente").open && $("emergente").close(), 1500);
   }
-  $("encuesta").addEventListener("click", votar);
+  function responder(ev) {
+    const b = ev.target.closest(".resp-enviar");
+    const e = estado.encuesta;
+    if (!b || !e || e.tipo !== "anonima") return;
+    const caja = b.parentElement.querySelector(".resp-texto");
+    const texto = caja.value.trim();
+    if (!texto) return caja.focus();
+    const cid = idAleatorio();
+    if (!con.enviar({ t: "respuesta", encuesta: e.id, cid, texto })) return estadoEnvio("Sin conexión: probá de nuevo en un segundo", "malo");
+    respuestasEnCamino.set(cid, { texto, caja });
+    caja.value = "";
+    estadoEnvio("Enviando tu respuesta…", "espera", 0);
+  }
+
+  const respuestasEnCamino = new Map(); // cid -> { texto, caja }
+  function alRespuestaOk(m) {
+    const r = respuestasEnCamino.get(m.cid);
+    respuestasEnCamino.delete(m.cid);
+    if (m.ok) {
+      estadoEnvio("✓ ¡Gracias! Tu respuesta anónima llegó");
+      if ($("emergente").open) setTimeout(() => $("emergente").open && $("emergente").close(), 1200);
+      return;
+    }
+    if (m.error === "silencio") {
+      estado.silencio = m.hasta;
+      if (m.ahora) desfase = m.ahora - Date.now();
+    }
+    if (r && !r.caja.value) r.caja.value = r.texto; // se la devolvemos para reintentar
+    estadoEnvio("No salió: " + (m.error === "cerrada" ? "ya no se reciben respuestas" : (MOTIVOS[m.error] || (() => "no se pudo enviar"))(m)), "malo", 6000);
+  }
+
+  $("encuesta").addEventListener("click", (ev) => {
+    votar(ev);
+    responder(ev);
+  });
   $("emergente").addEventListener("click", (ev) => {
     if (ev.target === $("emergente")) return $("emergente").close(); // tocar afuera cierra
     votar(ev);
+    responder(ev);
   });
+
+  // La caja anónima vista por el equipo: la pregunta y las respuestas en vivo, sin nombres.
+  let cajaVista = null;
+  function pintarCajaAnonima() {
+    const c = estado.cajaAnonima;
+    const el = $("cajaAnonima");
+    if (!veTodo() || !c || !c.encuesta) {
+      el.hidden = true;
+      return;
+    }
+    const e = c.encuesta;
+    const n = c.respuestas.length;
+    const estadoCaja = e.estado === "abierta" ? "recibiendo" : e.estado === "borrador" ? "preparada" : "cerrada";
+    el.innerHTML =
+      `<summary><span class="etiqueta">📮 Caja anónima · ${n} ${n === 1 ? "respuesta" : "respuestas"} · ${estadoCaja}</span>${esc(e.pregunta)}</summary>` +
+      (n
+        ? `<ul class="respuestas">${c.respuestas
+            .map((r) => `<li>${esc(r.texto)}<span class="hora">${new Date(r.ts - desfase).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })}</span></li>`)
+            .join("")}</ul>`
+        : '<div class="pie">Todavía no respondió nadie.</div>');
+    if (cajaVista !== e.id) el.open = true; // una caja nueva aparece desplegada
+    cajaVista = e.id;
+    el.hidden = false;
+  }
   $("emergenteCerrar").addEventListener("click", () => $("emergente").close());
 
   // ---------- acciones del equipo ----------
@@ -645,8 +714,10 @@
     const actual = (d.encuestas || []).find((e) => e.id === d.enPantalla);
     $("encActual").innerHTML = actual
       ? `<h3>En pantalla</h3><div class="enc-item"><div class="pregunta-enc">${esc(actual.pregunta)}</div>` +
-        `<div class="estado-enc">${actual.estado === "abierta" ? "Votando ahora" : "Mostrando resultados"} · ${(actual.conteos || []).reduce((a, b) => a + b, 0)} votos</div>` +
-        (actual.estado === "abierta" ? `<button type="button" data-enc="cerrar" data-id="${actual.id}" class="principal">Cerrar la votación</button>` : "") +
+        (actual.tipo === "anonima"
+          ? `<div class="estado-enc">📮 Caja anónima · ${actual.estado === "abierta" ? "recibiendo respuestas" : "cerrada"} · ${actual.respuestas || 0} ${actual.respuestas === 1 ? "respuesta" : "respuestas"}</div>`
+          : `<div class="estado-enc">${actual.estado === "abierta" ? "Votando ahora" : "Mostrando resultados"} · ${(actual.conteos || []).reduce((a, b) => a + b, 0)} votos</div>`) +
+        (actual.estado === "abierta" ? `<button type="button" data-enc="cerrar" data-id="${actual.id}" class="principal">${actual.tipo === "anonima" ? "Dejar de recibir respuestas" : "Cerrar la votación"}</button>` : "") +
         `<button type="button" data-enc="ocultar" class="secundario">Sacarla de la pantalla</button></div>`
       : "";
     const preparadas = (d.encuestas || []).filter((e) => e.estado === "borrador");
@@ -655,7 +726,7 @@
         preparadas
           .map(
             (e) =>
-              `<div class="enc-item"><div class="pregunta-enc">${esc(e.pregunta)}</div><div class="estado-enc">${e.opciones.map(esc).join(" · ")}</div>` +
+              `<div class="enc-item"><div class="pregunta-enc">${e.tipo === "anonima" ? "📮 " : ""}${esc(e.pregunta)}</div><div class="estado-enc">${e.tipo === "anonima" ? "Caja anónima" : e.opciones.map(esc).join(" · ")}</div>` +
               `<button type="button" data-enc="lanzar" data-id="${e.id}" class="principal">Lanzar</button></div>`
           )
           .join("")
@@ -671,9 +742,22 @@
   $("encCerrarDlg").addEventListener("click", () => $("dlgEncuestas").close());
   $("encMas").addEventListener("click", agregarOpcionEnc);
 
+  let tipoEnc = "opciones";
+  $("encTipo").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button[data-tipo]");
+    if (!b) return;
+    tipoEnc = b.dataset.tipo;
+    $("encTipo").querySelectorAll("button").forEach((x) => x.classList.toggle("activo", x === b));
+    const anonima = tipoEnc === "anonima";
+    $("encOpciones").hidden = anonima;
+    $("encMas").hidden = anonima;
+    $("encTipoNota").hidden = !anonima;
+    $("encPregunta").placeholder = anonima ? "La pregunta (ej: ¿Qué le preguntarías al invitado?)" : "La pregunta (ej: ¿Quién tiene razón?)";
+  });
+
   async function crearEncuesta(lanzar) {
     $("encError").textContent = "";
-    const datos = { pregunta: $("encPregunta").value, opciones: [...$("encOpciones").querySelectorAll("input")].map((i) => i.value.trim()).filter(Boolean) };
+    const datos = { tipo: tipoEnc, pregunta: $("encPregunta").value, opciones: [...$("encOpciones").querySelectorAll("input")].map((i) => i.value.trim()).filter(Boolean) };
     try {
       const { id } = await post("encuesta/crear", datos);
       if (lanzar) await post("encuesta/abrir", { id });
@@ -731,18 +815,17 @@
         recibido = true;
         rearmarFeed(m.mensajes || []);
         pintarEncuesta();
+        pintarCajaAnonima();
         pintar();
         if (!m.yo) mostrarAcceso(); // la sesión venció
         break;
       case "msg":
         // Al público sólo le llega lo suyo, cuando lo aprueban (si estaba en revisión).
         if (veTodo()) ponerMensaje(m.m);
-        else if (m.m.prod) mostrarAviso(m.m);
         else if (enRevision.delete(m.m.id)) estadoEnvio("✓ Aprobaron tu mensaje: salió en la pantalla");
         break;
       case "borrar":
         if (veTodo()) sacarMensaje(m.id);
-        else if ($("avisoPublico").dataset.id === String(m.id)) $("avisoPublico").hidden = true; // borraron el aviso
         break;
       case "destacado":
         ponerDestacado(m.d);
@@ -754,6 +837,19 @@
         if (m.ahora) desfase = m.ahora - Date.now();
         estado.silencio = m.hasta;
         pintar();
+        break;
+      case "cajaAnonima":
+        estado.cajaAnonima = m.c;
+        pintarCajaAnonima();
+        break;
+      case "respuesta":
+        if (estado.cajaAnonima && estado.cajaAnonima.encuesta.id === m.encuesta) {
+          estado.cajaAnonima.respuestas.unshift(m.r);
+          pintarCajaAnonima();
+        }
+        break;
+      case "respuestaOk":
+        alRespuestaOk(m);
         break;
       case "encuesta":
         estado.encuesta = m.e;

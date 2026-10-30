@@ -101,11 +101,17 @@
     <section id="tab-encuestas" class="tab" hidden>
       <form id="formEnc" class="tarjeta">
         <h2 id="tituloFormEnc">Nueva encuesta</h2>
+        <div class="roles" id="encTipo">
+          <label class="rol"><input type="radio" name="encTipo" value="opciones" checked><span><b>📊 Encuesta</b>El público vota entre opciones y los resultados salen en la pantalla.</span></label>
+          <label class="rol"><input type="radio" name="encTipo" value="anonima"><span><b>📮 Caja anónima</b>El público responde con sus palabras, sin nombre. Las respuestas no salen en la pantalla: las leen conductores y productores.</span></label>
+        </div>
         <label>Programa <select id="encPrograma"></select></label>
         <label>Pregunta <input id="encPregunta" maxlength="140" placeholder="¿Quién tiene razón?" required></label>
-        <div id="encOpciones" class="opciones-form"></div>
-        <div class="fila-botones">
-          <button type="button" id="encAgregar" class="boton secundario chico">+ Opción</button>
+        <div id="encConOpciones">
+          <div id="encOpciones" class="opciones-form"></div>
+          <div class="fila-botones">
+            <button type="button" id="encAgregar" class="boton secundario chico">+ Opción</button>
+          </div>
         </div>
         <div class="fila-botones">
           <button class="boton" id="encGuardar">Guardar</button>

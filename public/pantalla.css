@@ -310,6 +310,15 @@ body {
   opacity: 0.9;
 }
 
+/* Caja anónima: la invitación y el contador, uno abajo del otro */
+#encuesta .pie-anonima {
+  display: block;
+}
+
+#encuesta .pie-anonima span {
+  display: block;
+}
+
 /* ---------- QR (siempre opaco para que se pueda escanear) ---------- */
 
 #qr {

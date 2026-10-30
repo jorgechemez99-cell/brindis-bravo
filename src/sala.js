@@ -14,7 +14,7 @@ const AJUSTES_INICIALES = {
   letra: 30, // en píxeles sobre una pantalla de 1080 de alto
   maxMensajes: 7,
   duracion: 45, // segundos en pantalla; 0 = no se van solos
-  destacadoSeg: 0, // 0 = queda hasta que lo saquen
+  destacadoSeg: 10, // segundos en pantalla; 0 = queda hasta que lo saquen
   titulo: true, // "Brindis Bravo · programa" arriba de la ventana del chat
   contador: true, // cuánta gente está en el chat ahora (en la pantalla y en los celus)
   // Cada caja de la pantalla: visible o no, posición y tamaño en % de la pantalla.
@@ -48,7 +48,7 @@ const LIMITES = {
 // Roles del equipo. El conductor lee el chat completo en su celu, escribe y destaca; no modera.
 const ROLES = ["admin", "productor", "conductor"];
 const rolValido = (r) => (ROLES.includes(r) ? r : "productor");
-const PUEDE_CONDUCTOR = new Set(["yo", "logout", "mi-clave", "mensaje/destacar", "destacado/quitar"]);
+const PUEDE_CONDUCTOR = new Set(["yo", "logout", "mi-clave", "mensaje/destacar", "destacado/quitar", "respuestas"]);
 
 // Apodos que nadie del público puede usar (además de los usuarios del equipo).
 const RESERVADOS = new Set(["admin", "produccion", "brindis bravo"]);
@@ -82,6 +82,7 @@ export class Sala extends DurableObject {
     this.ultimoEnvio = new Map(); // disp -> ms del último mensaje (para el intervalo)
     this.fallosLogin = new Map(); // usuario -> { n, hasta }
     this.conteos = new Map(); // encuesta -> [votos por opción]
+    this.nRespuestas = new Map(); // caja anónima -> cuántas respuestas tiene
     this.cache = {}; // listas de mensajes que se piden muy seguido (ver ultimosVisibles)
     this.temporizadores = {};
     // Los celulares mandan "ping" cada tanto; se contesta sin despertar a la sala.
@@ -109,6 +110,11 @@ export class Sala extends DurableObject {
       CREATE INDEX IF NOT EXISTS cuentas_disp ON cuentas (disp);
       CREATE TABLE IF NOT EXISTS sesiones_chat (token TEXT PRIMARY KEY, cuenta INTEGER, vence INTEGER);
       CREATE TABLE IF NOT EXISTS sanciones (autor TEXT PRIMARY KEY, nick TEXT, tipo TEXT, hasta INTEGER, ts INTEGER);
+      CREATE TABLE IF NOT EXISTS respuestas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, encuesta INTEGER, autor TEXT, disp TEXT, cid TEXT,
+        texto TEXT, ts INTEGER, oculta INTEGER DEFAULT 0);
+      CREATE INDEX IF NOT EXISTS respuestas_encuesta ON respuestas (encuesta, ts);
+      CREATE UNIQUE INDEX IF NOT EXISTS respuestas_cid ON respuestas (disp, cid);
     `);
   }
 
@@ -127,6 +133,16 @@ export class Sala extends DurableObject {
         this.sql.exec("ALTER TABLE mensajes ADD COLUMN rol TEXT");
       } catch {}
       this.guardar("version", 3);
+    }
+    if (this.leer("version", 1) < 4) {
+      // Encuestas de dos tipos: con opciones, o "caja anónima" (pregunta abierta).
+      try {
+        this.sql.exec("ALTER TABLE encuestas ADD COLUMN tipo TEXT DEFAULT 'opciones'");
+      } catch {}
+      // El destacado quedaba hasta que lo sacaran: pasa a durar 10 segundos (se cambia en el panel).
+      const a = this.leer("ajustes");
+      if (a && !a.destacadoSeg) this.guardar("ajustes", { ...a, destacadoSeg: 10 });
+      this.guardar("version", 4);
     }
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_autor ON mensajes (autor)");
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_ts ON mensajes (ts)");
@@ -231,6 +247,7 @@ export class Sala extends DurableObject {
     if (adj.rol !== "publico") return;
     if (m.t === "msg") this.recibirMensaje(ws, adj, m);
     else if (m.t === "voto") this.recibirVoto(ws, adj, m);
+    else if (m.t === "respuesta") this.recibirRespuesta(ws, adj, m);
   }
 
   async webSocketClose(ws, code, reason) {
@@ -270,13 +287,12 @@ export class Sala extends DurableObject {
     if (autor) this.enviarA(["a:" + autor], obj);
   }
 
-  // Algo de un mensaje (que llegó, que se borró): el equipo lo ve siempre. El público recibe
-  // los avisos 📢 de la producción (los ve un rato) y lo suyo (para saber que salió); nada más.
+  // Algo de un mensaje (que llegó, que se borró): el equipo lo ve siempre. Del público, sólo
+  // quien lo escribió (para saber que salió); los avisos 📢 le llegan como destacado.
   // Al vetado no se le avisa que lo borraron.
   aChat(obj, m, { vetado = false } = {}) {
     this.enviarA(["completo"], obj);
-    if (m.prod) this.enviarA(["propio"], obj);
-    else if (!vetado && !esEquipo(m.autor)) this.aSocketsDe(m.autor, obj);
+    if (!vetado && !esEquipo(m.autor)) this.aSocketsDe(m.autor, obj);
   }
 
   aPaneles(obj) {
@@ -335,6 +351,7 @@ export class Sala extends DurableObject {
       encuesta: this.encuestaParaPublico(adj.disp),
       yo: adj.autor ? { autor: adj.autor, nick: adj.nick, equipo, rol: adj.nivel } : null,
       vista: adj.nivel === "publico" ? "propio" : "completo",
+      cajaAnonima: adj.nivel === "publico" ? null : this.cajaAnonima(),
       destacado: this.destacadoVigente(),
       gente: { n: this.ultimaGente ?? this.conteoConexiones().publico, visible: this.ajustes().contador },
       silencio: s && s.tipo === "silencio" ? s.hasta : null,
@@ -353,8 +370,8 @@ export class Sala extends DurableObject {
     this.cache.completo = null;
   }
 
-  // El equipo ve todo el chat. El público no ve el chat: escribe, ve los destacados y los
-  // avisos 📢 un rato (le llegan en vivo, no al conectarse) y las encuestas.
+  // El equipo ve todo el chat. El público no ve el chat: escribe, ve los destacados un rato
+  // (los avisos 📢 saltan solos como destacado) y las encuestas.
   mensajesPublico(adj) {
     return adj.nivel === "publico" ? [] : this.ultimosVisibles().map(paraPublico);
   }
@@ -574,15 +591,23 @@ export class Sala extends DurableObject {
     return this.conteos.get(e.id);
   }
 
+  respuestasDe(e) {
+    if (!this.nRespuestas.has(e.id)) this.nRespuestas.set(e.id, this.sql.exec("SELECT COUNT(*) AS n FROM respuestas WHERE encuesta = ? AND oculta = 0", e.id).one().n);
+    return this.nRespuestas.get(e.id);
+  }
+
   encuestaPublica(e) {
     if (!e) return null;
+    const anonima = e.tipo === "anonima";
     return {
       id: e.id,
       programa: e.programa,
+      tipo: anonima ? "anonima" : "opciones",
       pregunta: e.pregunta,
       opciones: JSON.parse(e.opciones),
       estado: e.estado,
-      conteos: e.estado === "borrador" ? null : this.conteosDe(e),
+      conteos: e.estado === "borrador" || anonima ? null : this.conteosDe(e),
+      respuestas: anonima ? this.respuestasDe(e) : null,
     };
   }
 
@@ -593,10 +618,57 @@ export class Sala extends DurableObject {
     return { ...e, miVoto: v ? v.opcion : null };
   }
 
+  // Caja anónima: las respuestas las lee el equipo (sin nombres); al público sólo le llega el total.
+  cajaAnonima() {
+    const e = this.sql.exec("SELECT * FROM encuestas WHERE id = ?", this.leer("ultimaAnonima", 0)).toArray()[0];
+    if (!e) return null;
+    return { encuesta: this.encuestaPublica(e), respuestas: this.respuestasLista(e.id, 200) };
+  }
+
+  respuestasLista(encuesta, cuantas) {
+    return this.sql.exec("SELECT id, texto, ts FROM respuestas WHERE encuesta = ? AND oculta = 0 ORDER BY ts DESC LIMIT ?", encuesta, cuantas).toArray();
+  }
+
+  recibirRespuesta(ws, adj, m) {
+    const cid = String(m.cid || "").slice(0, 60);
+    const responder = (ok, extra = {}) => ws.send(JSON.stringify({ t: "respuestaOk", cid, ok, ...extra }));
+    if (!adj.autor) return responder(false, { error: "sin-cuenta" });
+    const e = this.encuestaEnPantalla();
+    if (!e || e.id !== m.encuesta || e.tipo !== "anonima" || e.estado !== "abierta") return responder(false, { error: "cerrada" });
+    const texto = limpiarTexto(m.texto, MAX_LARGO, false);
+    if (!texto || !cid) return responder(false, { error: "vacio" });
+    if (this.sql.exec("SELECT id FROM respuestas WHERE disp = ? AND cid = ?", adj.disp, cid).toArray().length) return responder(true);
+    const equipo = esEquipo(adj.autor);
+    const sancion = equipo ? null : this.sancionDe(adj.autor);
+    if (sancion && sancion.tipo === "silencio") return responder(false, { error: "silencio", hasta: sancion.hasta, ahora: Date.now() });
+    const ahora = Date.now();
+    if (!equipo) {
+      const espera = this.intervalo() * 1000 - (ahora - (this.ultimoEnvio.get(adj.disp) || 0));
+      if (espera > 0) return responder(false, { error: "espera", espera: Math.ceil(espera / 1000) });
+      this.ultimoEnvio.set(adj.disp, ahora);
+    }
+    // Al vetado se le dice que salió, pero su respuesta no la ve nadie.
+    const oculta = sancion ? 1 : 0;
+    const { id } = this.sql
+      .exec("INSERT INTO respuestas (encuesta, autor, disp, cid, texto, ts, oculta) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id", e.id, adj.autor, adj.disp, cid, texto, ahora, oculta)
+      .one();
+    responder(true);
+    if (oculta) return;
+    this.nRespuestas.set(e.id, this.respuestasDe(e) + 1);
+    const r = { t: "respuesta", encuesta: e.id, r: { id, texto, ts: ahora } };
+    this.enviarA(["completo"], r);
+    this.aPaneles(r);
+    this.agrupar("respuestas", 500, () => {
+      const msg = { t: "respuestas", encuesta: e.id, n: this.respuestasDe(e) };
+      this.aPantallas(msg);
+      this.aPaneles(msg);
+    });
+  }
+
   recibirVoto(ws, adj, m) {
     const e = this.encuestaEnPantalla();
     const responder = (ok, extra = {}) => ws.send(JSON.stringify({ t: "voto", encuesta: m.encuesta, ok, ...extra }));
-    if (!e || e.id !== m.encuesta || e.estado !== "abierta") return responder(false, { error: "cerrada" });
+    if (!e || e.id !== m.encuesta || e.estado !== "abierta" || e.tipo === "anonima") return responder(false, { error: "cerrada" });
     const opcion = Number(m.opcion);
     const c = this.conteosDe(e);
     if (!Number.isInteger(opcion) || opcion < 0 || opcion >= c.length) return responder(false, { error: "opcion" });
@@ -616,6 +688,7 @@ export class Sala extends DurableObject {
 
   difundirEncuesta() {
     this.aPantallas({ t: "encuesta", e: this.encuestaPublica(this.encuestaEnPantalla()) });
+    this.enviarA(["completo"], { t: "cajaAnonima", c: this.cajaAnonima() });
     for (const ws of this.abiertos("publico")) {
       const adj = ws.deserializeAttachment() || {};
       try {
@@ -840,6 +913,7 @@ export class Sala extends DurableObject {
     if (ruta === "mi-clave" && req.method === "POST") return this.cambiarMiClave(req, u);
     if (ruta === "estado" && req.method === "GET") return json(this.configPanel(u));
     if (ruta === "encuestas" && req.method === "GET") return json(this.encuestasParaChat());
+    if (ruta === "respuestas" && req.method === "GET") return json({ respuestas: this.respuestasLista(Number(url.searchParams.get("encuesta")), 500) });
     if (ruta === "exportar" && req.method === "GET") return this.exportar(u, url);
     if (req.method !== "POST") throw new ErrorApi(405, "Método no permitido");
     const accion = this.acciones[ruta];
@@ -934,6 +1008,8 @@ export class Sala extends DurableObject {
         rol: u.rol,
       });
       this.difundirMensaje(msg);
+      // Un aviso de la producción salta solo como destacado (en la pantalla y en los celus).
+      this.ponerDestacado({ id: msg.id, nick, texto, prod: 1, autor: msg.autor, desde: msg.ts });
     },
 
     simular(u) {
@@ -1016,14 +1092,15 @@ export class Sala extends DurableObject {
     "encuesta/crear"(u, b) {
       const programa = b.programa == null || b.programa === "" ? this.aire() : Number(b.programa);
       if (programa != null && !this.sql.exec("SELECT id FROM programas WHERE id = ?", programa).toArray().length) throw new ErrorApi(404, "Ese programa no existe");
-      const { pregunta, opciones } = validarEncuesta(b);
+      const { pregunta, opciones, tipo } = validarEncuesta(b);
       const { id } = this.sql
         .exec(
-          "INSERT INTO encuestas (programa, pregunta, opciones, estado, creada) VALUES (?, ?, ?, 'borrador', ?) RETURNING id",
+          "INSERT INTO encuestas (programa, pregunta, opciones, estado, creada, tipo) VALUES (?, ?, ?, 'borrador', ?, ?) RETURNING id",
           programa,
           pregunta,
           JSON.stringify(opciones),
-          Date.now()
+          Date.now(),
+          tipo
         )
         .one();
       this.refrescarPanelesPronto();
@@ -1033,8 +1110,8 @@ export class Sala extends DurableObject {
     "encuesta/editar"(u, b) {
       const e = this.encuesta(b.id);
       if (e.estado !== "borrador") throw new ErrorApi(400, "Sólo se puede editar antes de lanzarla");
-      const { pregunta, opciones } = validarEncuesta(b);
-      this.sql.exec("UPDATE encuestas SET pregunta = ?, opciones = ? WHERE id = ?", pregunta, JSON.stringify(opciones), e.id);
+      const { pregunta, opciones, tipo } = validarEncuesta(b);
+      this.sql.exec("UPDATE encuestas SET pregunta = ?, opciones = ?, tipo = ? WHERE id = ?", pregunta, JSON.stringify(opciones), tipo, e.id);
       this.conteos.delete(e.id);
       this.refrescarPanelesPronto();
     },
@@ -1043,8 +1120,10 @@ export class Sala extends DurableObject {
       const e = this.encuesta(b.id);
       if (this.leer("encuestaPantalla", null) === e.id) throw new ErrorApi(400, "Primero ocultala de la pantalla");
       this.sql.exec("DELETE FROM votos WHERE encuesta = ?", e.id);
+      this.sql.exec("DELETE FROM respuestas WHERE encuesta = ?", e.id);
       this.sql.exec("DELETE FROM encuestas WHERE id = ?", e.id);
       this.conteos.delete(e.id);
+      this.nRespuestas.delete(e.id);
       this.refrescarPanelesPronto();
     },
 
@@ -1055,6 +1134,7 @@ export class Sala extends DurableObject {
       if (actual && actual.id !== e.id && actual.estado === "abierta") this.sql.exec("UPDATE encuestas SET estado = 'cerrada' WHERE id = ?", actual.id);
       this.sql.exec("UPDATE encuestas SET estado = 'abierta' WHERE id = ?", e.id);
       this.guardar("encuestaPantalla", e.id);
+      if (e.tipo === "anonima") this.guardar("ultimaAnonima", e.id);
       this.difundirEncuesta();
     },
 
@@ -1105,6 +1185,7 @@ export class Sala extends DurableObject {
       if (id === this.aire()) throw new ErrorApi(400, "Es el programa de ahora: elegí otro (o ninguno) antes de borrarlo");
       for (const e of this.sql.exec("SELECT id FROM encuestas WHERE programa = ?", id).toArray()) {
         this.sql.exec("DELETE FROM votos WHERE encuesta = ?", e.id);
+        this.sql.exec("DELETE FROM respuestas WHERE encuesta = ?", e.id);
         this.conteos.delete(e.id);
       }
       this.sql.exec("DELETE FROM encuestas WHERE programa = ?", id);
@@ -1266,11 +1347,13 @@ function paraPublico(m) {
 }
 
 function validarEncuesta(b) {
+  const tipo = b.tipo === "anonima" ? "anonima" : "opciones";
   const pregunta = limpiarTexto(b.pregunta, 140, true);
-  const opciones = (Array.isArray(b.opciones) ? b.opciones : []).map((o) => limpiarTexto(o, 60, true)).filter(Boolean);
   if (!pregunta) throw new ErrorApi(400, "Falta la pregunta");
+  if (tipo === "anonima") return { pregunta, opciones: [], tipo };
+  const opciones = (Array.isArray(b.opciones) ? b.opciones : []).map((o) => limpiarTexto(o, 60, true)).filter(Boolean);
   if (opciones.length < 2 || opciones.length > 6) throw new ErrorApi(400, "Tiene que tener entre 2 y 6 opciones");
-  return { pregunta, opciones };
+  return { pregunta, opciones, tipo };
 }
 
 function validarClave(c) {
