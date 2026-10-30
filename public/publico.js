@@ -311,6 +311,21 @@
     }, queda);
   }
 
+  // 📢 Aviso de la producción: al público le aparece un rato, como un destacado.
+  let tAviso;
+  function mostrarAviso(m) {
+    const el = $("avisoPublico");
+    clearTimeout(tAviso);
+    el.className = "destacado-publico aviso-prod";
+    el.dataset.id = m.id;
+    el.innerHTML = `<span class="etiqueta-dest">📢 ${esc(m.nick)}</span><span class="txt">${esc(m.texto)}</span>`;
+    el.hidden = false;
+    tAviso = setTimeout(() => {
+      el.classList.add("sale");
+      tAviso = setTimeout(() => (el.hidden = true), 600);
+    }, DESTACADO_PUBLICO_MS);
+  }
+
   // Al público, en vez de una lista, una línea que le dice cómo le fue a lo que mandó.
   let tEnvio;
   function estadoEnvio(texto, tipo = "", ms = 4000) {
@@ -722,10 +737,12 @@
       case "msg":
         // Al público sólo le llega lo suyo, cuando lo aprueban (si estaba en revisión).
         if (veTodo()) ponerMensaje(m.m);
+        else if (m.m.prod) mostrarAviso(m.m);
         else if (enRevision.delete(m.m.id)) estadoEnvio("✓ Aprobaron tu mensaje: salió en la pantalla");
         break;
       case "borrar":
         if (veTodo()) sacarMensaje(m.id);
+        else if ($("avisoPublico").dataset.id === String(m.id)) $("avisoPublico").hidden = true; // borraron el aviso
         break;
       case "destacado":
         ponerDestacado(m.d);

@@ -270,11 +270,13 @@ export class Sala extends DurableObject {
     if (autor) this.enviarA(["a:" + autor], obj);
   }
 
-  // Algo de un mensaje (que llegó, que se borró): el equipo lo ve siempre. Del público, sólo
-  // quien lo escribió (para saber que salió). Al vetado no se le avisa que lo borraron.
+  // Algo de un mensaje (que llegó, que se borró): el equipo lo ve siempre. El público recibe
+  // los avisos 📢 de la producción (los ve un rato) y lo suyo (para saber que salió); nada más.
+  // Al vetado no se le avisa que lo borraron.
   aChat(obj, m, { vetado = false } = {}) {
     this.enviarA(["completo"], obj);
-    if (!vetado && !esEquipo(m.autor)) this.aSocketsDe(m.autor, obj);
+    if (m.prod) this.enviarA(["propio"], obj);
+    else if (!vetado && !esEquipo(m.autor)) this.aSocketsDe(m.autor, obj);
   }
 
   aPaneles(obj) {
@@ -351,8 +353,8 @@ export class Sala extends DurableObject {
     this.cache.completo = null;
   }
 
-  // El equipo ve todo el chat. El público no ve mensajes: sólo escribe, ve los destacados
-  // (un rato) y las encuestas.
+  // El equipo ve todo el chat. El público no ve el chat: escribe, ve los destacados y los
+  // avisos 📢 un rato (le llegan en vivo, no al conectarse) y las encuestas.
   mensajesPublico(adj) {
     return adj.nivel === "publico" ? [] : this.ultimosVisibles().map(paraPublico);
   }

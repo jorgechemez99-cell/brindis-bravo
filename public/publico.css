@@ -438,6 +438,16 @@ body.conductor #lista li[data-id]:active {
   margin-right: 6px;
 }
 
+/* 📢 aviso de la producción */
+.destacado-publico.aviso-prod {
+  border-color: var(--acento2);
+  background: linear-gradient(180deg, #3a2c0c, #221c0e);
+}
+
+.destacado-publico.aviso-prod .etiqueta-dest {
+  color: var(--acento2);
+}
+
 .destacado-publico.sale {
   transition: opacity 0.6s;
   opacity: 0;
