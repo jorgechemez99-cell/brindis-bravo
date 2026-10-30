@@ -3,7 +3,7 @@
 // o como vista previa en el panel (?vista=1).
 (function () {
   "use strict";
-  const { Conexion, urlWs, servidor, colorDe, esc, svgQR } = window.Comun;
+  const { Conexion, urlWs, servidor, colorDe, esc, svgQR, iconoRol } = window.Comun;
   const vista = new URLSearchParams(location.search).get("vista") === "1";
   const $ = (id) => document.getElementById(id);
   const raiz = document.documentElement;
@@ -89,7 +89,7 @@
     const el = document.createElement("div");
     el.className = "msj" + (m.prod ? " prod" : m.equipo ? " equipo" : "") + (animar ? "" : " quieto");
     const color = m.prod || m.equipo ? "" : ` style="color:${colorDe(m.nick)}"`;
-    el.innerHTML = `<span class="nick"${color}>${esc(m.nick)}</span>${m.equipo ? '<span class="insignia">EQUIPO</span>' : ""}<span class="texto">${esc(m.texto)}</span>`;
+    el.innerHTML = `${m.equipo ? iconoRol(m.rol) : ""}<span class="nick"${color}>${esc(m.nick)}</span><span class="texto">${esc(m.texto)}</span>`;
     $("lista").appendChild(el);
     visibles.push({ id: m.id, ts: m.ts, el });
     revisar();

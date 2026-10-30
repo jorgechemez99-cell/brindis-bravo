@@ -45,6 +45,11 @@ const LIMITES = {
   urlQR: "texto",
 };
 
+// Roles del equipo. El conductor lee el chat completo en su celu, escribe y destaca; no modera.
+const ROLES = ["admin", "productor", "conductor"];
+const rolValido = (r) => (ROLES.includes(r) ? r : "productor");
+const PUEDE_CONDUCTOR = new Set(["yo", "logout", "mi-clave", "mensaje/destacar", "destacado/quitar"]);
+
 // Apodos que nadie del público puede usar (además de los usuarios del equipo).
 const RESERVADOS = new Set(["admin", "produccion", "brindis bravo"]);
 
@@ -77,6 +82,7 @@ export class Sala extends DurableObject {
     this.ultimoEnvio = new Map(); // disp -> ms del último mensaje (para el intervalo)
     this.fallosLogin = new Map(); // usuario -> { n, hasta }
     this.conteos = new Map(); // encuesta -> [votos por opción]
+    this.cache = {}; // listas de mensajes que se piden muy seguido (ver ultimosVisibles)
     this.temporizadores = {};
     // Los celulares mandan "ping" cada tanto; se contesta sin despertar a la sala.
     ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
@@ -115,8 +121,16 @@ export class Sala extends DurableObject {
       } catch {}
       this.guardar("version", 2);
     }
+    if (this.leer("version", 1) < 3) {
+      // El rol del equipo al escribir (para mostrar su ícono: conducción, producción, admin).
+      try {
+        this.sql.exec("ALTER TABLE mensajes ADD COLUMN rol TEXT");
+      } catch {}
+      this.guardar("version", 3);
+    }
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_autor ON mensajes (autor)");
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_ts ON mensajes (ts)");
+    this.sql.exec(`CREATE INDEX IF NOT EXISTS mensajes_produccion ON mensajes (ts) WHERE ${DE_PRODUCCION}`);
   }
 
   // ---------- estado simple (clave/valor en memoria + SQLite) ----------
@@ -178,19 +192,27 @@ export class Sala extends DurableObject {
       const disp = url.searchParams.get("disp") || "";
       if (!/^[A-Za-z0-9-]{8,64}$/.test(disp)) return new Response("Dispositivo inválido", { status: 400 });
       const yo = origenValido(req) ? this.identidadChat(req) : null;
-      adj = yo ? { rol, disp, autor: yo.autor, nick: yo.nick } : { rol, disp };
+      adj = yo ? { rol, disp, autor: yo.autor, nick: yo.nick, nivel: yo.rol } : { rol, disp, nivel: "publico" };
     } else if (rol === "pantalla") {
       adj = { rol: url.searchParams.get("vista") === "1" ? "vista" : "pantalla" };
     } else if (rol === "panel") {
       if (!origenValido(req)) return new Response("Origen inválido", { status: 403 });
       const u = this.usuarioDeSesion(req);
       if (!u) return new Response("Sin sesión", { status: 401 });
+      if (u.rol === "conductor") return new Response("Los conductores usan el chat", { status: 403 });
       adj = { rol, usuario: u.usuario };
     } else {
       return new Response("Rol inválido", { status: 400 });
     }
     const [cliente, servidor] = Object.values(new WebSocketPair());
-    this.ctx.acceptWebSocket(servidor, [adj.rol]);
+    // Etiquetas: el tipo de conexión; en los celus, además, qué chat ve ("completo" el equipo,
+    // "propio" el público) y de quién es, para mandarle lo suyo sin recorrer a todos.
+    const etiquetas = [adj.rol];
+    if (adj.rol === "publico") {
+      etiquetas.push(adj.nivel === "publico" ? "propio" : "completo");
+      if (adj.autor) etiquetas.push("a:" + adj.autor);
+    }
+    this.ctx.acceptWebSocket(servidor, etiquetas);
     servidor.serializeAttachment(adj);
     servidor.send(JSON.stringify(this.estadoPara(adj)));
     if (adj.rol === "publico" || adj.rol === "pantalla") this.avisarConteo();
@@ -239,26 +261,21 @@ export class Sala extends DurableObject {
     this.enviarA(["pantalla", "vista"], obj);
   }
 
-  // Al público; con exceptoAutor, esa persona no lo recibe (p. ej. un vetado no ve que lo borraron).
-  aPublico(obj, exceptoAutor = null) {
-    if (!exceptoAutor) return this.enviarA(["publico"], obj);
-    const s = JSON.stringify(obj);
-    for (const ws of this.abiertos("publico")) {
-      if ((ws.deserializeAttachment() || {}).autor === exceptoAutor) continue;
-      try {
-        ws.send(s);
-      } catch {}
-    }
+  // A todos los celus (equipo y público).
+  aPublico(obj) {
+    this.enviarA(["publico"], obj);
   }
 
   aSocketsDe(autor, obj) {
-    const s = JSON.stringify(obj);
-    for (const ws of this.abiertos("publico")) {
-      if ((ws.deserializeAttachment() || {}).autor !== autor) continue;
-      try {
-        ws.send(s);
-      } catch {}
-    }
+    if (autor) this.enviarA(["a:" + autor], obj);
+  }
+
+  // Algo de un mensaje (que llegó, que se borró): el equipo lo ve siempre; el público sólo
+  // si es de la producción o si es suyo. Al vetado no se le avisa que lo borraron.
+  aChat(obj, m, { vetado = false } = {}) {
+    this.enviarA(["completo"], obj);
+    if (esDeProduccion(m)) this.enviarA(["propio"], obj);
+    else if (!vetado) this.aSocketsDe(m.autor, obj);
   }
 
   aPaneles(obj) {
@@ -304,7 +321,7 @@ export class Sala extends DurableObject {
     return u ? { t: "estado", ...this.configPanel(u), mensajes: this.mensajesPanel() } : { t: "salir" };
   }
 
-  estadoPublico(adj, comunes) {
+  estadoPublico(adj) {
     const equipo = esEquipo(adj.autor);
     const s = adj.autor && !equipo ? this.sancionDe(adj.autor) : null;
     return {
@@ -315,29 +332,48 @@ export class Sala extends DurableObject {
       maxLargo: MAX_LARGO,
       intervalo: this.intervalo(),
       encuesta: this.encuestaParaPublico(adj.disp),
-      yo: adj.autor ? { autor: adj.autor, nick: adj.nick, equipo } : null,
+      yo: adj.autor ? { autor: adj.autor, nick: adj.nick, equipo, rol: adj.nivel } : null,
+      vista: adj.nivel === "publico" ? "propio" : "completo",
+      destacado: this.destacadoVigente(),
       gente: { n: this.ultimaGente ?? this.conteoConexiones().publico, visible: this.ajustes().contador },
       silencio: s && s.tipo === "silencio" ? s.hasta : null,
-      mensajes: this.mensajesPublico(adj.autor, comunes),
+      mensajes: this.mensajesPublico(adj),
     };
   }
 
-  // Lo último que salió en el chat (lo mismo para todos los celus). El chat es uno solo,
-  // de corrido: cambiar de programa no lo corta.
+  // Las dos listas que se mandan a cada celu que se conecta. Se guardan en memoria y se
+  // rehacen sólo cuando cambia algo, para no leer la base cada vez que alguien se reconecta.
+  //   completo: lo último del chat (para el equipo). El chat es uno solo, de corrido.
+  //   produccion: lo último que mandó la producción (lo único ajeno que ve el público).
   ultimosVisibles() {
-    return this.sql.exec("SELECT id, nick, texto, ts, prod, autor, estado FROM mensajes WHERE estado = 'ok' ORDER BY ts DESC LIMIT 100").toArray().reverse();
+    this.cache.completo ??= this.sql.exec("SELECT id, nick, texto, ts, prod, autor, rol, estado FROM mensajes WHERE estado = 'ok' ORDER BY ts DESC LIMIT 100").toArray().reverse();
+    return this.cache.completo;
   }
 
-  // Más lo propio que no salió: en revisión, o vetado (el vetado lo sigue viendo como si nada).
-  mensajesPublico(autor, comunes = this.ultimosVisibles()) {
-    let lista = comunes;
-    if (autor && !esEquipo(autor)) {
-      const propios = this.sql
-        .exec("SELECT id, nick, texto, ts, prod, autor, estado FROM mensajes WHERE autor = ? AND estado IN ('pendiente', 'vetado') ORDER BY ts DESC LIMIT 30", autor)
-        .toArray();
-      if (propios.length) lista = [...comunes, ...propios].sort((a, b) => a.ts - b.ts).slice(-100);
-    }
-    return lista.map(paraPublico);
+  ultimosDeProduccion() {
+    this.cache.produccion ??= this.sql
+      .exec(`SELECT id, nick, texto, ts, prod, autor, rol, estado FROM mensajes WHERE ${DE_PRODUCCION} AND estado = 'ok' ORDER BY ts DESC LIMIT 40`)
+      .toArray()
+      .reverse();
+    return this.cache.produccion;
+  }
+
+  olvidarListas(m) {
+    this.cache.completo = null;
+    if (!m || esDeProduccion(m)) this.cache.produccion = null;
+  }
+
+  // El equipo ve todo el chat. El público ve lo suyo (también lo que está en revisión, o
+  // vetado: el vetado lo sigue viendo como si nada) y lo de la producción.
+  mensajesPublico(adj) {
+    if (adj.nivel !== "publico") return this.ultimosVisibles().map(paraPublico);
+    const propios = adj.autor
+      ? this.sql.exec("SELECT id, nick, texto, ts, prod, autor, rol, estado FROM mensajes WHERE autor = ? AND estado IN ('ok', 'pendiente', 'vetado') ORDER BY ts DESC LIMIT 60", adj.autor).toArray()
+      : [];
+    return [...this.ultimosDeProduccion(), ...propios]
+      .sort((a, b) => a.ts - b.ts)
+      .slice(-100)
+      .map(paraPublico);
   }
 
   estadoPantalla() {
@@ -356,7 +392,7 @@ export class Sala extends DurableObject {
   mensajesPantalla() {
     const filas = this.sql
       .exec(
-        "SELECT id, nick, texto, ts, prod, autor FROM mensajes WHERE estado = 'ok' AND ts > ? ORDER BY ts DESC LIMIT ?",
+        "SELECT id, nick, texto, ts, prod, autor, rol FROM mensajes WHERE estado = 'ok' AND ts > ? ORDER BY ts DESC LIMIT ?",
         this.leer("limpieza", 0),
         Math.min(60, this.ajustes().maxMensajes * 2)
       )
@@ -416,11 +452,10 @@ export class Sala extends DurableObject {
   }
 
   refrescarPublico() {
-    const comunes = this.ultimosVisibles();
     for (const ws of this.abiertos("publico")) {
       const adj = ws.deserializeAttachment() || {};
       try {
-        ws.send(JSON.stringify(this.estadoPublico(adj, comunes)));
+        ws.send(JSON.stringify(this.estadoPublico(adj)));
       } catch {}
     }
   }
@@ -444,7 +479,8 @@ export class Sala extends DurableObject {
     const cid = String(m.cid || "").slice(0, 60);
     const responder = (ok, extra = {}) => ws.send(JSON.stringify({ t: "ack", cid, ok, ...extra }));
     const equipo = esEquipo(adj.autor);
-    if (!adj.autor || (equipo && !this.usuario(adj.nick))) return responder(false, { error: "sin-cuenta" });
+    const delEquipo = equipo ? this.usuario(adj.nick) : null;
+    if (!adj.autor || (equipo && !delEquipo)) return responder(false, { error: "sin-cuenta" });
     if (this.leer("pausa", false) && !equipo) return responder(false, { error: "pausa" });
     const texto = limpiarTexto(m.texto, MAX_LARGO, false);
     if (!texto || !cid) return responder(false, { error: "vacio" });
@@ -460,7 +496,7 @@ export class Sala extends DurableObject {
       this.ultimoEnvio.set(adj.disp, ahora);
     }
     const estado = sancion ? "vetado" : !equipo && this.leer("aprobacion", false) ? "pendiente" : "ok";
-    const msg = this.insertarMensaje({ programa: this.aire(), disp: adj.disp, cid, nick: adj.nick, texto, ts: ahora, estado, prod: 0, autor: adj.autor });
+    const msg = this.insertarMensaje({ programa: this.aire(), disp: adj.disp, cid, nick: adj.nick, texto, ts: ahora, estado, prod: 0, autor: adj.autor, rol: delEquipo ? delEquipo.rol : null });
     // Al vetado se le confirma como si nada: no se entera.
     responder(true, { id: msg.id, estado: estado === "pendiente" ? "pendiente" : "ok" });
     this.difundirMensaje(msg);
@@ -469,7 +505,7 @@ export class Sala extends DurableObject {
   insertarMensaje(m) {
     const fila = this.sql
       .exec(
-        "INSERT INTO mensajes (programa, disp, cid, nick, texto, ts, estado, prod, autor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+        "INSERT INTO mensajes (programa, disp, cid, nick, texto, ts, estado, prod, autor, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
         m.programa,
         m.disp,
         m.cid,
@@ -478,17 +514,20 @@ export class Sala extends DurableObject {
         m.ts,
         m.estado,
         m.prod,
-        m.autor ?? null
+        m.autor ?? null,
+        m.rol ?? null
       )
       .one();
-    return { ...m, id: fila.id };
+    const msg = { ...m, id: fila.id };
+    this.olvidarListas(msg);
+    return msg;
   }
 
   difundirMensaje(msg) {
     if (msg.estado === "ok") {
       const m = paraPantalla(msg);
       this.aPantallas({ t: "msg", m });
-      this.aPublico({ t: "msg", m });
+      this.aChat({ t: "msg", m }, msg);
     }
     this.aPaneles({ t: "msg", m: msg });
   }
@@ -501,10 +540,11 @@ export class Sala extends DurableObject {
 
   cambiarEstado(m, estado, extra = {}) {
     this.sql.exec("UPDATE mensajes SET estado = ? WHERE id = ?", estado, m.id);
+    this.olvidarListas(m);
     this.aPaneles({ t: "msgEstado", id: m.id, estado, ...extra });
     if (estado !== "ok") {
       this.aPantallas({ t: "borrar", id: m.id });
-      this.aPublico({ t: "borrar", id: m.id }, estado === "vetado" ? m.autor : null);
+      this.aChat({ t: "borrar", id: m.id }, m, { vetado: estado === "vetado" });
       const d = this.destacadoVigente();
       if (d && d.id === m.id) this.ponerDestacado(null);
     }
@@ -513,10 +553,19 @@ export class Sala extends DurableObject {
   ponerDestacado(d) {
     this.guardar("destacado", d);
     this.aPantallas({ t: "destacado", d });
+    this.aPublico({ t: "destacado", d }); // el público también ve lo que se destaca
     this.refrescarPanelesPronto();
   }
 
   // ---------- encuestas ----------
+
+  // Lo que necesita el chat del productor para armar y lanzar encuestas desde el celu.
+  encuestasParaChat() {
+    return {
+      encuestas: this.sql.exec("SELECT * FROM encuestas ORDER BY id DESC LIMIT 30").toArray().map((e) => this.encuestaPublica(e)),
+      enPantalla: this.leer("encuestaPantalla", null),
+    };
+  }
 
   encuesta(id) {
     const e = this.sql.exec("SELECT * FROM encuestas WHERE id = ?", Number(id)).toArray()[0];
@@ -610,13 +659,13 @@ export class Sala extends DurableObject {
   // Quién escribe desde el celu: alguien del equipo (con su sesión) o una cuenta del público.
   identidadChat(req) {
     const u = this.usuarioDeSesion(req);
-    if (u) return { autor: "u:" + u.usuario, nick: u.usuario, equipo: true };
+    if (u) return { autor: "u:" + u.usuario, nick: u.usuario, equipo: true, rol: u.rol };
     const token = leerCookie(req, "chat");
     if (!token) return null;
     const c = this.sql
       .exec("SELECT c.id, c.nick FROM sesiones_chat s JOIN cuentas c ON c.id = s.cuenta WHERE s.token = ? AND s.vence > ?", token, Date.now())
       .toArray()[0];
-    return c ? { autor: "c:" + c.id, nick: c.nick, equipo: false } : null;
+    return c ? { autor: "c:" + c.id, nick: c.nick, equipo: false, rol: "publico" } : null;
   }
 
   nickOcupado(norm) {
@@ -631,7 +680,7 @@ export class Sala extends DurableObject {
     this.sql.exec("DELETE FROM sesiones_chat WHERE vence < ?", Date.now());
     const token = tokenAleatorio();
     this.sql.exec("INSERT INTO sesiones_chat (token, cuenta, vence) VALUES (?, ?, ?)", token, cuenta, Date.now() + DURACION_SESION);
-    return json({ ok: true, yo: { autor: "c:" + cuenta, nick, equipo: false } }, 200, { "Set-Cookie": cookie("chat", token, url, DURACION_SESION / 1000) });
+    return json({ ok: true, yo: { autor: "c:" + cuenta, nick, equipo: false, rol: "publico" } }, 200, { "Set-Cookie": cookie("chat", token, url, DURACION_SESION / 1000) });
   }
 
   async apiChat(ruta, req, url) {
@@ -682,7 +731,7 @@ export class Sala extends DurableObject {
     // Alguien del equipo entra con su usuario de siempre.
     if (this.usuario(norm) && (await this.claveOk(norm, clave))) {
       this.fallosLogin.delete(llave);
-      return this.abrirSesion(norm, url, { yo: { autor: "u:" + norm, nick: norm, equipo: true } });
+      return this.abrirSesion(norm, url, { yo: { autor: "u:" + norm, nick: norm, equipo: true, rol: this.usuario(norm).rol } });
     }
     const c = this.sql.exec("SELECT id, nick, hash, sal FROM cuentas WHERE nick_norm = ?", norm).toArray()[0];
     if (c && (await verificarClave(clave, c.sal, c.hash))) {
@@ -803,9 +852,11 @@ export class Sala extends DurableObject {
       this.sql.exec("DELETE FROM sesiones WHERE token = ?", leerCookie(req, "sesion"));
       return json({ ok: true }, 200, { "Set-Cookie": cookie("sesion", "", url, 0) });
     }
+    if (u.rol === "conductor" && !PUEDE_CONDUCTOR.has(ruta)) throw new ErrorApi(403, "Los conductores sólo pueden destacar mensajes");
     if (ruta === "yo") return json({ usuario: u.usuario, rol: u.rol });
     if (ruta === "mi-clave" && req.method === "POST") return this.cambiarMiClave(req, u);
     if (ruta === "estado" && req.method === "GET") return json(this.configPanel(u));
+    if (ruta === "encuestas" && req.method === "GET") return json(this.encuestasParaChat());
     if (ruta === "exportar" && req.method === "GET") return this.exportar(u, url);
     if (req.method !== "POST") throw new ErrorApi(405, "Método no permitido");
     const accion = this.acciones[ruta];
@@ -854,9 +905,10 @@ export class Sala extends DurableObject {
       const m = this.mensaje(b.id);
       if (m.estado !== "borrado") return;
       this.sql.exec("UPDATE mensajes SET estado = 'ok' WHERE id = ?", m.id);
+      this.olvidarListas(m);
       const pm = paraPantalla(m);
       this.aPantallas({ t: "msg", m: pm });
-      this.aPublico({ t: "msg", m: pm });
+      this.aChat({ t: "msg", m: pm }, m);
       this.aPaneles({ t: "msgEstado", id: m.id, estado: "ok" });
     },
 
@@ -865,16 +917,17 @@ export class Sala extends DurableObject {
       if (m.estado !== "pendiente") return;
       const ts = Date.now();
       this.sql.exec("UPDATE mensajes SET estado = 'ok', ts = ? WHERE id = ?", ts, m.id);
+      this.olvidarListas(m);
       const pm = paraPantalla({ ...m, ts });
       this.aPantallas({ t: "msg", m: pm });
-      this.aPublico({ t: "msg", m: pm });
+      this.aChat({ t: "msg", m: pm }, m);
       this.aPaneles({ t: "msgEstado", id: m.id, estado: "ok", ts });
     },
 
     "mensaje/destacar"(u, b) {
       const m = this.mensaje(b.id);
       if (m.estado !== "ok" && m.estado !== "pendiente") throw new ErrorApi(400, "Ese mensaje está borrado");
-      this.ponerDestacado({ id: m.id, nick: m.nick, texto: m.texto, prod: m.prod, desde: Date.now() });
+      this.ponerDestacado({ id: m.id, nick: m.nick, texto: m.texto, prod: m.prod, autor: m.autor, desde: Date.now() });
     },
 
     "destacado/quitar"(u) {
@@ -895,6 +948,7 @@ export class Sala extends DurableObject {
         estado: "ok",
         prod: 1,
         autor: "u:" + u.usuario,
+        rol: u.rol,
       });
       this.difundirMensaje(msg);
     },
@@ -947,6 +1001,7 @@ export class Sala extends DurableObject {
       }
       this.sql.exec("DELETE FROM cuentas WHERE disp LIKE 'carga-%'");
       this.sql.exec("DELETE FROM mensajes WHERE disp LIKE 'carga-%'");
+      this.olvidarListas();
       this.refrescarTodo();
       return { borradas: ids.length };
     },
@@ -974,9 +1029,10 @@ export class Sala extends DurableObject {
       this.refrescarPanelesPronto();
     },
 
+    // Sin programa elegido, la encuesta queda en el programa de ahora (o en ninguno).
     "encuesta/crear"(u, b) {
-      const programa = Number(b.programa);
-      if (!this.sql.exec("SELECT id FROM programas WHERE id = ?", programa).toArray().length) throw new ErrorApi(404, "Ese programa no existe");
+      const programa = b.programa == null || b.programa === "" ? this.aire() : Number(b.programa);
+      if (programa != null && !this.sql.exec("SELECT id FROM programas WHERE id = ?", programa).toArray().length) throw new ErrorApi(404, "Ese programa no existe");
       const { pregunta, opciones } = validarEncuesta(b);
       const { id } = this.sql
         .exec(
@@ -1092,7 +1148,7 @@ export class Sala extends DurableObject {
         usuario,
         hash,
         sal,
-        b.rol === "admin" ? "admin" : "productor",
+        rolValido(b.rol),
         "[]",
         Date.now()
       );
@@ -1112,7 +1168,7 @@ export class Sala extends DurableObject {
         this.marcarDebil(usuario, clave);
       }
       if (b.programas != null) this.sql.exec("UPDATE usuarios SET programas = ? WHERE usuario = ?", JSON.stringify(this.programasValidos(b.programas)), usuario);
-      if (b.rol != null) this.sql.exec("UPDATE usuarios SET rol = ? WHERE usuario = ?", b.rol === "admin" ? "admin" : "productor", usuario);
+      if (b.rol != null) this.sql.exec("UPDATE usuarios SET rol = ? WHERE usuario = ?", rolValido(b.rol), usuario);
       this.refrescarPaneles();
     },
 
@@ -1189,6 +1245,11 @@ function cookie(nombre, valor, url, maxAge) {
 
 const esEquipo = (autor) => typeof autor === "string" && autor.startsWith("u:");
 
+// Lo de la producción: mensajes del panel y todo lo que escribe el equipo. Es lo único ajeno
+// que ve el público en su celu. (La misma condición arma un índice: no cambiarla en un solo lugar.)
+const DE_PRODUCCION = "(prod = 1 OR substr(autor, 1, 2) = 'u:')";
+const esDeProduccion = (m) => !!m.prod || esEquipo(m.autor);
+
 // Para comparar apodos: sin acentos, sin mayúsculas, sin espacios de más.
 function normalizarNick(s) {
   return String(s || "")
@@ -1215,7 +1276,8 @@ function limpiarTexto(valor, max, unaLinea) {
 }
 
 function paraPantalla(m) {
-  return { id: m.id, nick: m.nick, texto: m.texto, ts: m.ts, prod: m.prod, equipo: !m.prod && esEquipo(m.autor) ? 1 : 0, autor: m.autor || null };
+  const equipo = !m.prod && esEquipo(m.autor);
+  return { id: m.id, nick: m.nick, texto: m.texto, ts: m.ts, prod: m.prod, equipo: equipo ? 1 : 0, rol: equipo ? m.rol || "productor" : null, autor: m.autor || null };
 }
 
 function paraPublico(m) {

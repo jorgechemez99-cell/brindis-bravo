@@ -301,18 +301,8 @@ textarea:focus {
   margin-right: 6px;
 }
 
-#lista .insignia {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #141414;
-  background: var(--acento2);
-  border-radius: 6px;
-  padding: 1px 6px;
-  margin-right: 6px;
-  vertical-align: 2px;
+.icono-rol {
+  margin-right: 4px;
 }
 
 #lista .propio {
@@ -352,7 +342,7 @@ textarea:focus {
   cursor: pointer;
 }
 
-body.equipo #lista li[data-id] .borrar-rapido {
+body.moderador #lista li[data-id] .borrar-rapido {
   display: block;
 }
 
@@ -367,12 +357,46 @@ body.equipo #lista li[data-id] .borrar-rapido {
   color: var(--error);
 }
 
-body.equipo #lista li[data-id] {
+body.moderador #lista li[data-id],
+body.conductor #lista li[data-id] {
   cursor: pointer;
 }
 
-body.equipo #lista li[data-id]:active {
+body.moderador #lista li[data-id]:active,
+body.conductor #lista li[data-id]:active {
   background: rgb(255 255 255 / 0.06);
+}
+
+/* El mensaje que está destacado en la pantalla (vista del equipo) */
+#lista li.es-destacado {
+  box-shadow: inset 3px 0 0 #ffd23f;
+}
+
+#lista li.es-destacado .nick::after {
+  content: " ★";
+  color: #ffd23f;
+}
+
+/* Vista del público: lo suyo a la derecha, lo de la producción y los destacados a la izquierda */
+body.propia #lista li.propio {
+  margin-left: 18%;
+  background: rgb(255 61 127 / 0.14);
+}
+
+#lista li.destacado-aviso {
+  margin: 8px 0;
+  border: 1px solid #6b5a16;
+  background: linear-gradient(180deg, #2b2610, #1e1c12);
+}
+
+#lista li.destacado-aviso .etiqueta-dest {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffd23f;
+  margin-bottom: 2px;
 }
 
 .nuevos {
@@ -390,6 +414,35 @@ body.equipo #lista li[data-id]:active {
   background: var(--acento);
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.5);
   cursor: pointer;
+}
+
+/* ---------- herramientas del equipo ---------- */
+
+.herramientas {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 0;
+}
+
+.chip-boton {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+}
+
+.rol-texto {
+  font-size: 13px;
+  color: var(--suave);
 }
 
 /* ---------- escribir ---------- */
@@ -411,6 +464,32 @@ body.equipo #lista li[data-id]:active {
   min-height: 48px;
   max-height: 140px;
   line-height: 1.3;
+}
+
+/* 📢 mandar como mensaje de la producción (productores) */
+.prod-toggle {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: #1b1b24;
+  cursor: pointer;
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+.prod-toggle.activo {
+  filter: none;
+  opacity: 1;
+  background: #4d3a13;
+  border-color: var(--acento2);
+}
+
+.redactar.modo-prod textarea {
+  border-color: var(--acento2);
+  background: #1e1a0e;
 }
 
 .enviar {
@@ -568,6 +647,90 @@ body.equipo #lista li[data-id]:active {
 .hoja button.cancelar {
   background: none;
   color: var(--suave);
+}
+
+/* ---------- encuesta que salta y armado de encuestas ---------- */
+
+.emergente {
+  margin: auto;
+  border-color: #5a2a3d;
+  background: linear-gradient(180deg, #24161e, var(--tarjeta));
+}
+
+.encuesta-cuerpo {
+  padding: 6px 6px 0;
+}
+
+.encuesta-cuerpo .etiqueta {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--acento);
+}
+
+.encuesta-cuerpo h3 {
+  font-size: 20px;
+  margin: 4px 0 6px;
+}
+
+.hoja .opcion {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  padding: 12px 14px;
+  text-align: left;
+  background: #0c0c11;
+  border: 1px solid var(--borde);
+}
+
+.encuestas-hoja {
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.encuestas-hoja h2 {
+  margin: 0 0 10px;
+}
+
+.encuestas-hoja h3 {
+  font-size: 14px;
+  color: var(--suave);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 16px 0 8px;
+}
+
+.encuestas-hoja input {
+  margin-bottom: 8px;
+}
+
+.encuestas-hoja button.principal {
+  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+  color: #fff;
+}
+
+.encuestas-hoja button.secundario {
+  background: #262632;
+}
+
+.enc-item {
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.enc-item .pregunta-enc {
+  font-weight: 800;
+}
+
+.enc-item .estado-enc {
+  font-size: 13px;
+  color: var(--suave);
+  margin: 2px 0 4px;
 }
 
 .toast {

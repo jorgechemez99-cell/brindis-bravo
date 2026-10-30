@@ -16,7 +16,7 @@
   </div>
   <div class="yo" id="zonaYo" hidden>
     <span id="miNick"></span>
-    <button id="btnSalir" class="link" type="button">Salir</button>
+    <span><a id="linkPanel" class="link" href="/panel" hidden>Panel</a> <button id="btnSalir" class="link" type="button">Salir</button></span>
   </div>
 </header>
 
@@ -45,29 +45,58 @@
 
 <!-- ---------- chat ---------- -->
 <section id="chat" class="chat" hidden>
+  <div id="herramientas" class="herramientas" hidden>
+    <button id="btnEncuestas" class="chip-boton" type="button">📊 Encuestas</button>
+    <span id="rolTexto" class="rol-texto"></span>
+  </div>
   <div id="aviso" class="aviso" hidden></div>
   <details id="encuesta" class="encuesta" hidden></details>
   <div id="feed" class="feed">
-    <p id="feedVacio" class="vacio">Todavía no hay mensajes. ¡Arrancá vos!</p>
+    <p id="feedVacio" class="vacio"></p>
     <ul id="lista"></ul>
   </div>
   <button id="nuevos" class="nuevos" type="button" hidden>↓ Mensajes nuevos</button>
   <form id="formMsj" class="redactar">
+    <button type="button" id="btnProd" class="prod-toggle" hidden title="Mandar como mensaje de la producción (sale resaltado)" aria-pressed="false">📢</button>
     <textarea id="texto" rows="1" placeholder="Escribí tu comentario…" enterkeyhint="send"></textarea>
     <span id="contador" class="contador" hidden></span>
     <button id="enviar" class="boton enviar" aria-label="Enviar">➤</button>
   </form>
 </section>
 
+<!-- ---------- encuesta que salta (público) ---------- -->
+<dialog id="emergente" class="hoja emergente">
+  <div id="emergenteCuerpo" class="encuesta-cuerpo"></div>
+  <button type="button" id="emergenteCerrar" class="cancelar">Cerrar</button>
+</dialog>
+
+<!-- ---------- armar encuestas (productores) ---------- -->
+<dialog id="dlgEncuestas" class="hoja encuestas-hoja">
+  <h2>Encuestas</h2>
+  <div id="encActual"></div>
+  <form id="formEncuesta">
+    <h3>Nueva</h3>
+    <input id="encPregunta" placeholder="La pregunta (ej: ¿Quién tiene razón?)" maxlength="140" required>
+    <div id="encOpciones"></div>
+    <button type="button" id="encMas" class="secundario">+ Otra opción</button>
+    <button class="principal">Lanzar ahora</button>
+    <button type="button" id="encGuardar" class="secundario">Guardar para después</button>
+    <p id="encError" class="error"></p>
+  </form>
+  <div id="encLista"></div>
+  <button type="button" id="encCerrarDlg" class="cancelar">Cerrar</button>
+</dialog>
+
 <!-- ---------- acciones del equipo sobre un mensaje ---------- -->
 <dialog id="hoja" class="hoja">
   <div id="hojaMsj" class="hoja-msj"></div>
   <button data-acc="destacar">★ Destacar en la pantalla</button>
-  <button data-acc="borrar">Borrar</button>
-  <button data-acc="silencio" data-min="5" class="sancion">Silenciar 5 minutos</button>
-  <button data-acc="silencio" data-min="15" class="sancion">Silenciar 15 minutos</button>
-  <button data-acc="silencio" data-min="60" class="sancion">Silenciar 1 hora</button>
-  <button data-acc="veto" class="sancion peligro">Vetar (para siempre)</button>
+  <button data-acc="quitar" hidden>Quitar el destacado</button>
+  <button data-acc="borrar" class="moderar">Borrar</button>
+  <button data-acc="silencio" data-min="5" class="sancion moderar">Silenciar 5 minutos</button>
+  <button data-acc="silencio" data-min="15" class="sancion moderar">Silenciar 15 minutos</button>
+  <button data-acc="silencio" data-min="60" class="sancion moderar">Silenciar 1 hora</button>
+  <button data-acc="veto" class="sancion moderar peligro">Vetar (para siempre)</button>
   <button data-acc="cancelar" class="cancelar">Cancelar</button>
 </dialog>
 

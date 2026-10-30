@@ -1,13 +1,13 @@
-// Prueba de carga: simula N celulares (cada uno con su cuenta) mandando mensajes,
-// leyendo el chat y votando, más una pantalla que mide cuánto tarda cada mensaje
-// en aparecer.
+// Prueba de carga: simula N celulares (cada uno con su cuenta) mandando mensajes y
+// votando, un conductor que lee el chat completo, y una pantalla que mide cuánto
+// tarda cada mensaje en aparecer.
 //
 //   npm run carga                                  (contra el servidor local)
 //   BASE=https://... N=150 SEG=45 npm run carga    (pide la clave del admin)
 //
 // Crea un programa "Prueba de carga" y lo pone como programa de ahora. Al terminar
 // vuelve al programa que estaba, lo borra (con sus mensajes y su encuesta) y borra
-// las cuentas de prueba. Si hay gente conectada no corre, para no meterse en un show.
+// las cuentas de prueba y el conductor de prueba. Si hay gente conectada no corre, para no meterse en un show.
 import { readFileSync } from "node:fs";
 import { pedirClave, clienteApi } from "./util.mjs";
 
@@ -34,7 +34,7 @@ function abrir(consulta, alMensaje, cookie) {
   });
 }
 
-const r = { enviados: 0, ok: 0, errores: {}, reenvios: 0, enPantalla: 0, latencias: [], conexionesFallidas: 0, leidosEnCelus: 0 };
+const r = { enviados: 0, ok: 0, errores: {}, reenvios: 0, enPantalla: 0, latencias: [], conexionesFallidas: 0, ajenosEnCelus: 0, enConductor: 0 };
 
 await api.post("login", { usuario: "admin", clave: CLAVE });
 const inicial = await api.get("estado");
@@ -45,6 +45,22 @@ if (inicial.conteo.publico > 0 && !process.env.FORZAR) {
 const { id: programa } = await api.post("programa/crear", { nombre: "Prueba de carga" });
 await api.post("aire", { programa });
 await api.post("intervalo", { valor: 2 });
+
+// Un conductor que lee todo el chat en su celu (tiene que recibir cada mensaje).
+const conductor = "carga-conductor-" + Math.random().toString(36).slice(2, 6);
+await api.post("usuario/crear", { usuario: conductor, clave: "carga-conductor", rol: "conductor" });
+const entrada = await fetch(BASE + "/api/chat/entrar", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", Origin: BASE },
+  body: JSON.stringify({ nick: conductor, clave: "carga-conductor" }),
+});
+const celuConductor = await abrir(
+  "rol=publico&disp=carga-conductor-celu",
+  (m) => {
+    if (m.t === "msg" && /@\d+$/.test(m.m.texto)) r.enConductor++;
+  },
+  entrada.headers.getSetCookie()[0].split(";")[0]
+);
 
 // Pantalla que mide cuánto tarda cada mensaje en aparecer.
 let votosPantalla = null;
@@ -75,11 +91,13 @@ try {
         body: JSON.stringify({ nick: "Carga " + disp.slice(6), clave: "carga-" + i, disp }),
       });
       if (!resp.ok) throw new Error("no se pudo crear la cuenta");
+      celu.autor = (await resp.json()).yo.autor;
       const cookie = resp.headers.getSetCookie()[0].split(";")[0];
       celu.ws = await abrir(
         "rol=publico&disp=" + disp,
         (m) => {
-          if (m.t === "msg") r.leidosEnCelus++;
+          // El público sólo recibe lo suyo y lo de la producción: un mensaje ajeno es un error.
+          if (m.t === "msg" && !m.m.equipo && !m.m.prod && m.m.autor !== celu.autor) r.ajenosEnCelus++;
           if (m.t !== "ack") return;
           if (m.ok) r.ok++;
           else r.errores[m.error] = (r.errores[m.error] || 0) + 1;
@@ -149,12 +167,15 @@ try {
   console.log(`Mensajes enviados: ${r.enviados} · confirmados: ${r.ok} (incluye ${r.reenvios} reenvíos a propósito)`);
   console.log(`Rechazados: ${Object.keys(r.errores).length ? JSON.stringify(r.errores) : "ninguno"}`);
   console.log(`Llegaron a la pantalla: ${r.enPantalla} de ${r.enviados} · duplicados: ${r.enPantalla > r.enviados ? "SÍ" : "ninguno"}`);
-  console.log(`Chat en los celus: ${r.leidosEnCelus} entregas (esperadas ${r.enPantalla * celus.length})`);
+  console.log(`Conductor (chat completo): recibió ${r.enConductor} de ${r.enPantalla}`);
+  console.log(`Mensajes ajenos que le llegaron al público: ${r.ajenosEnCelus} (tiene que ser 0)`);
   console.log(`Demora hasta la pantalla: mediana ${p(0.5)} ms · p95 ${p(0.95)} ms · máx ${lat[lat.length - 1] ?? 0} ms`);
   console.log(`Encuesta: esperados ${JSON.stringify(votosEsperados)} · en pantalla ${JSON.stringify(votosPantalla)} · ${votosOk ? "OK" : "NO COINCIDE"}`);
   console.log(`Conexiones fallidas: ${r.conexionesFallidas}`);
 } finally {
   pantalla.close();
+  celuConductor.close();
+  await api.post("usuario/borrar", { usuario: conductor });
   await api.post("aire", { programa: inicial.aire });
   await api.post("intervalo", { valor: inicial.intervalo });
   await api.post("programa/borrar", { id: programa });

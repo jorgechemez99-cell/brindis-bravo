@@ -58,7 +58,7 @@
       <span id="cPublico" class="chip"></span>
       <span id="cConexion" class="chip"></span>
     </div>
-    <div class="yo"><span id="yo"></span> <button id="btnMiClave" class="link">Mi clave</button> <button id="btnSalir" class="link">Salir</button></div>
+    <div class="yo"><span id="yo"></span> <a class="link" href="/?chat=1">💬 Chat</a> <button id="btnMiClave" class="link">Mi clave</button> <button id="btnSalir" class="link">Salir</button></div>
   </header>
 
   <div id="avisoClave" class="aviso" hidden>Tu clave es muy fácil de adivinar. Antes del show cambiala tocando <button class="link abrirMiClave">Mi clave</button>, acá arriba.</div>
@@ -159,8 +159,9 @@
           </div>
           <p class="pregunta">¿Qué puede hacer?</p>
           <div class="roles">
-            <label class="rol"><input type="radio" name="nuRol" value="productor" checked><span><b>Productor</b>Maneja el chat (silenciar, vetar, destacar), las encuestas, la pantalla y el programa de ahora.</span></label>
-            <label class="rol"><input type="radio" name="nuRol" value="admin"><span><b>Admin</b>Lo mismo, y además crea cuentas del equipo y programas.</span></label>
+            <label class="rol"><input type="radio" name="nuRol" value="productor" checked><span><b>Productor</b>Entra al chat con todo para moderar (borrar, silenciar, vetar, destacar) y armar encuestas. También puede usar este panel.</span></label>
+            <label class="rol"><input type="radio" name="nuRol" value="conductor"><span><b>Conductor</b>Lee el chat completo en su celu para no darse vuelta, escribe y destaca mensajes. No modera.</span></label>
+            <label class="rol"><input type="radio" name="nuRol" value="admin"><span><b>Admin</b>Entra directo a este panel. Todo lo anterior, y además crea cuentas del equipo y programas.</span></label>
           </div>
           <button class="boton">Agregar</button>
         </form>
@@ -176,7 +177,7 @@
 
       <div class="tarjeta">
         <h2>Quiénes entran al panel</h2>
-        <p class="nota">El cambio de rol se guarda solo. Estas mismas cuentas sirven para entrar al chat del público desde el celu y moderar ahí.</p>
+        <p class="nota">El cambio de rol se guarda solo. Todos entran por el mismo QR (o por la dirección del sitio) con <b>¿Ya tenés cuenta? Entrá acá</b>, y a cada uno lo lleva a su lugar.</p>
         <ul id="listaUsuarios" class="lista-admin"></ul>
       </div>
 

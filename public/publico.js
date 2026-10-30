@@ -1,9 +1,11 @@
-// Página del público: entrar con apodo y clave, ver el chat en vivo, escribir y votar.
-// Si entra alguien del equipo (con su usuario del panel), además puede moderar
-// tocando un mensaje.
+// La puerta de entrada (la abre el QR): entrar o crear la cuenta, y cada uno ve lo suyo.
+//   - Público: lo que manda, lo de la producción, los destacados y las encuestas (que saltan).
+//   - Conductor: el chat completo; escribe y destaca.
+//   - Productor: el chat completo con todo para moderar y armar encuestas.
+//   - Admin: va al panel (con ?chat=1 se queda en el chat, como productor).
 (function () {
   "use strict";
-  const { Conexion, urlWs, idAleatorio, esc, largo, guardado, colorDe } = window.Comun;
+  const { Conexion, urlWs, idAleatorio, esc, largo, guardado, colorDe, iconoRol } = window.Comun;
   const $ = (id) => document.getElementById(id);
 
   let disp = guardado("chat.disp");
@@ -11,7 +13,7 @@
     disp = idAleatorio();
     guardado("chat.disp", disp);
   }
-  let yo = null; // { autor, nick, equipo }
+  let yo = null; // { autor, nick, equipo, rol }
   let estado = { programa: null, pausa: false, maxLargo: 280, intervalo: 3, encuesta: null, silencio: null };
   let con = null;
   let recibido = false;
@@ -20,6 +22,7 @@
   let ultimoEnvio = 0;
   let miVoto = null;
   let encuestaVista = null;
+  let emergenteVista = null;
   const pendientes = new Map(); // cid -> { texto, li, enviado }
   const porId = new Map(); // id -> { m, li }
 
@@ -32,6 +35,10 @@
   };
 
   const ahora = () => Date.now() + desfase;
+  const rol = () => (yo && yo.rol) || "publico";
+  const esModerador = () => rol() === "admin" || rol() === "productor";
+  const veTodo = () => rol() !== "publico";
+  const destacadosVistos = new Set(); // los avisos de destacado que ya se pusieron en la lista del público
 
   let tToast;
   function toast(texto, malo, accion) {
@@ -82,7 +89,7 @@
     $("chat").hidden = true;
     $("zonaYo").hidden = true;
     $("acceso").hidden = false;
-    document.body.classList.remove("equipo");
+    document.body.classList.remove("moderador", "conductor", "propia");
     const previo = guardado("chat.nick") || "";
     $("nNick").value = $("eNick").value = previo;
     modoAcceso(guardado("chat.cuenta") ? "entrar" : "nuevo");
@@ -131,12 +138,24 @@
     yo = quien;
     guardado("chat.nick", yo.nick);
     guardado("chat.cuenta", "1");
+    // El admin trabaja en el panel; desde ahí puede volver al chat con ?chat=1.
+    if (rol() === "admin" && !new URLSearchParams(location.search).has("chat")) return location.replace("/panel");
     $("acceso").hidden = true;
     $("chat").hidden = false;
     $("zonaYo").hidden = false;
-    $("miNick").textContent = yo.nick;
+    $("miNick").innerHTML = (yo.equipo ? iconoRol(yo.rol) : "") + esc(yo.nick);
     $("miNick").style.color = yo.equipo ? "var(--acento2)" : colorDe(yo.nick);
-    document.body.classList.toggle("equipo", !!yo.equipo);
+    $("btnProd").hidden = !esModerador();
+    document.body.classList.toggle("moderador", esModerador());
+    document.body.classList.toggle("conductor", rol() === "conductor");
+    document.body.classList.toggle("propia", !veTodo());
+    $("linkPanel").hidden = !esModerador();
+    $("herramientas").hidden = !veTodo();
+    $("btnEncuestas").hidden = !esModerador();
+    $("rolTexto").textContent = { admin: "Admin: tocá un mensaje para moderarlo", productor: "Productor: tocá un mensaje para moderarlo", conductor: "Conducción: tocá un mensaje para destacarlo" }[rol()] || "";
+    $("feedVacio").textContent = veTodo()
+      ? "Todavía no hay mensajes."
+      : "Escribí abajo y tu mensaje sale en la pantalla 📺. Acá vas a ver lo que mandás, los mensajes de la producción, los destacados y las encuestas.";
     conectar();
     pintar();
   }
@@ -219,8 +238,8 @@
     const color = m.prod ? "" : ` style="color:${m.equipo ? "var(--acento2)" : colorDe(m.nick)}"`;
     return (
       '<button type="button" class="borrar-rapido" aria-label="Borrar este mensaje" title="Borrar">✕</button>' +
+      (m.equipo ? iconoRol(m.rol) : "") +
       `<span class="nick"${color}>${esc(m.nick)}</span>` +
-      (m.equipo ? '<span class="insignia">equipo</span>' : "") +
       `<span class="txt">${esc(m.texto)}</span>` +
       (marca ? `<span class="marca-estado">${esc(marca)}</span>` : "")
     );
@@ -243,28 +262,60 @@
     const pegado = cercaDelFinal();
     const li = document.createElement("li");
     li.dataset.id = m.id;
-    li.dataset.ts = m.ts;
     li.className = clasesDe(m);
     li.innerHTML = htmlMensaje(m, m.revision ? "En revisión: sale cuando lo aprueben" : "");
-    // En orden de hora: un mensaje que vuelve (Deshacer) se ubica donde estaba.
+    insertarEnOrden(li, m.ts);
+    porId.set(m.id, { m, li });
+    marcarDestacado();
+    if (pegado) alFinal();
+    else $("nuevos").hidden = false;
+  }
+
+  // En orden de hora: un mensaje que vuelve (Deshacer) se ubica donde estaba.
+  function insertarEnOrden(li, ts) {
+    li.dataset.ts = ts;
     let antesDe = null;
     for (let el = $("lista").lastElementChild; el; el = el.previousElementSibling) {
-      if (Number(el.dataset.ts || Infinity) > m.ts) antesDe = el;
+      if (Number(el.dataset.ts || Infinity) > ts) antesDe = el;
       else break;
     }
     $("lista").insertBefore(li, antesDe);
-    porId.set(m.id, { m, li });
     recortar();
     $("feedVacio").hidden = true;
+  }
+
+  // Lo destacado en la pantalla: el equipo lo ve marcado con ★ en el chat; el público
+  // recibe un aviso en su lista (y si es su mensaje, se entera).
+  function ponerDestacado(d) {
+    estado.destacado = d;
+    marcarDestacado();
+    if (!d || veTodo()) return;
+    const clave = d.id + ":" + d.desde;
+    if (destacadosVistos.has(clave)) return;
+    destacadosVistos.add(clave);
+    const pegado = cercaDelFinal();
+    const li = document.createElement("li");
+    li.className = "destacado-aviso";
+    const mio = yo && d.autor === yo.autor;
+    li.innerHTML =
+      `<span class="etiqueta-dest">${mio ? "⭐ ¡Destacaron tu mensaje en la pantalla!" : "⭐ Destacado en la pantalla"}</span>` +
+      `<span class="nick" style="color:${d.prod ? "var(--acento2)" : colorDe(d.nick)}">${esc(d.nick)}</span><span class="txt">${esc(d.texto)}</span>`;
+    insertarEnOrden(li, d.desde);
     if (pegado) alFinal();
     else $("nuevos").hidden = false;
+  }
+
+  function marcarDestacado() {
+    if (!veTodo()) return;
+    const d = estado.destacado;
+    for (const { m, li } of porId.values()) li.classList.toggle("es-destacado", !!d && d.id === m.id);
   }
 
   function recortar() {
     const lista = $("lista");
     while (lista.children.length > 200) {
       const viejo = lista.firstElementChild;
-      porId.delete(Number(viejo.dataset.id));
+      if (viejo.dataset.id) porId.delete(Number(viejo.dataset.id));
       viejo.remove();
     }
   }
@@ -274,16 +325,18 @@
     if (!ya) return;
     ya.li.remove();
     porId.delete(id);
-    $("feedVacio").hidden = porId.size > 0 || pendientes.size > 0;
+    $("feedVacio").hidden = $("lista").children.length > 0;
   }
 
   function rearmarFeed(mensajes) {
     $("lista").innerHTML = "";
     porId.clear();
+    destacadosVistos.clear();
     mensajes.forEach(ponerMensaje);
+    ponerDestacado(estado.destacado);
     // Lo que todavía no se confirmó queda al final, esperando.
     for (const p of pendientes.values()) $("lista").appendChild(p.li);
-    $("feedVacio").hidden = mensajes.length > 0 || pendientes.size > 0;
+    $("feedVacio").hidden = $("lista").children.length > 0;
     alFinal();
   }
 
@@ -319,16 +372,41 @@
     $("texto").focus();
   });
 
+  // 📢 Mensaje de la producción (como el del panel): sale resaltado en la pantalla y le llega a todos.
+  let modoProd = false;
+  $("btnProd").addEventListener("click", () => {
+    modoProd = !modoProd;
+    $("btnProd").classList.toggle("activo", modoProd);
+    $("btnProd").setAttribute("aria-pressed", String(modoProd));
+    $("formMsj").classList.toggle("modo-prod", modoProd);
+    $("texto").placeholder = modoProd ? "Mensaje de la producción (sale resaltado)…" : "Escribí tu comentario…";
+    $("texto").focus();
+  });
+
+  async function enviarProduccion(texto) {
+    $("texto").value = "";
+    actualizarContador();
+    try {
+      await post("mensaje/produccion", { texto });
+      toast("📢 Salió como mensaje de la producción");
+    } catch (e) {
+      $("texto").value = texto;
+      actualizarContador();
+      toast(e.message, true);
+    }
+  }
+
   function enviar() {
     const texto = $("texto").value.trim();
     if (!texto || largo(texto) > (estado.maxLargo || 280) || silenciadoPor() > 0) return;
+    if (modoProd && esModerador()) return enviarProduccion(texto);
     if (estado.pausa && !yo.equipo) return avisoFugaz("El chat está en pausa un ratito");
     const falta = yo.equipo ? 0 : estado.intervalo * 1000 - (Date.now() - ultimoEnvio);
     if (falta > 0) return avisoFugaz(`Esperá ${Math.ceil(falta / 1000)} s para mandar otro`);
     const cid = idAleatorio();
     const li = document.createElement("li");
     li.className = "propio enviando";
-    li.innerHTML = htmlMensaje({ nick: yo.nick, texto, equipo: yo.equipo }, "Enviando…");
+    li.innerHTML = htmlMensaje({ nick: yo.nick, texto, equipo: yo.equipo, rol: yo.rol }, "Enviando…");
     $("lista").appendChild(li);
     $("feedVacio").hidden = true;
     pendientes.set(cid, { texto, li, enviado: Date.now() });
@@ -356,7 +434,7 @@
         p.li.remove(); // ya llegó por el chat
         return;
       }
-      const msg = { id: m.id, nick: yo.nick, texto: p.texto, equipo: yo.equipo ? 1 : 0, autor: yo.autor, revision: m.estado === "pendiente" ? 1 : 0 };
+      const msg = { id: m.id, nick: yo.nick, texto: p.texto, equipo: yo.equipo ? 1 : 0, rol: yo.rol, autor: yo.autor, revision: m.estado === "pendiente" ? 1 : 0 };
       p.li.dataset.id = m.id;
       p.li.dataset.ts = ahora();
       p.li.className = clasesDe(msg);
@@ -370,27 +448,19 @@
     }
     if (m.error === "sin-cuenta") return mostrarAcceso();
     p.li.className = "propio error";
-    p.li.innerHTML = htmlMensaje({ nick: yo.nick, texto: p.texto, equipo: yo.equipo }, "No salió: " + (MOTIVOS[m.error] || (() => "no se pudo enviar"))(m));
+    p.li.innerHTML = htmlMensaje({ nick: yo.nick, texto: p.texto, equipo: yo.equipo, rol: yo.rol }, "No salió: " + (MOTIVOS[m.error] || (() => "no se pudo enviar"))(m));
     if (!$("texto").value.trim() && m.error !== "silencio") $("texto").value = p.texto; // se lo devolvemos para reintentar
     pintar();
   }
 
   // ---------- encuesta ----------
 
-  function pintarEncuesta() {
-    const e = estado.encuesta;
-    const el = $("encuesta");
-    if (!e) {
-      el.hidden = true;
-      encuestaVista = null;
-      return;
-    }
+  function htmlOpciones(e) {
     const conteos = e.conteos || e.opciones.map(() => 0);
     const total = conteos.reduce((a, b) => a + b, 0);
     const abierta = e.estado === "abierta";
     const resultados = !abierta || miVoto != null;
-    el.innerHTML =
-      `<summary><span class="etiqueta">${abierta ? "Encuesta en vivo" : "Resultados"}</span>${esc(e.pregunta)}</summary>` +
+    return (
       e.opciones
         .map((o, i) => {
           const pct = total ? Math.round((conteos[i] * 100) / total) : 0;
@@ -403,15 +473,35 @@
           );
         })
         .join("") +
-      `<div class="pie">${abierta ? (miVoto == null ? "Tocá una opción para votar" : "¡Votaste! Podés cambiar tu voto") : "Votación cerrada"} · ${total} ${total === 1 ? "voto" : "votos"}</div>`;
-    // Una encuesta nueva (o que se vuelve a abrir) aparece desplegada.
+      `<div class="pie">${abierta ? (miVoto == null ? "Tocá una opción para votar" : "¡Votaste! Podés cambiar tu voto") : "Votación cerrada"} · ${total} ${total === 1 ? "voto" : "votos"}</div>`
+    );
+  }
+
+  function pintarEncuesta() {
+    const e = estado.encuesta;
+    const el = $("encuesta");
+    if (!e) {
+      el.hidden = true;
+      encuestaVista = null;
+      if ($("emergente").open) $("emergente").close();
+      return;
+    }
+    const abierta = e.estado === "abierta";
+    el.innerHTML = `<summary><span class="etiqueta">${abierta ? "Encuesta en vivo" : "Resultados"}</span>${esc(e.pregunta)}</summary>` + htmlOpciones(e);
     const clave = e.id + ":" + e.estado;
-    if (clave !== encuestaVista) el.open = true;
+    // Al público, una encuesta nueva (o que se vuelve a abrir) le salta en el medio de la pantalla.
+    if (!veTodo() && abierta && miVoto == null && clave !== emergenteVista && !$("emergente").open) {
+      emergenteVista = clave;
+      $("emergente").showModal();
+    }
+    if ($("emergente").open) $("emergenteCuerpo").innerHTML = `<span class="etiqueta">Encuesta en vivo</span><h3>${esc(e.pregunta)}</h3>` + htmlOpciones(e);
+    // Arriba queda la tarjeta: desplegada para el equipo, cerrada para el público (ya le saltó).
+    if (clave !== encuestaVista) el.open = veTodo();
     encuestaVista = clave;
     el.hidden = false;
   }
 
-  $("encuesta").addEventListener("click", (ev) => {
+  function votar(ev) {
     const b = ev.target.closest(".opcion");
     const e = estado.encuesta;
     if (!b || !e || e.estado !== "abierta") return;
@@ -419,19 +509,27 @@
     if (!con.enviar({ t: "voto", encuesta: e.id, opcion })) return avisoFugaz("Sin conexión: probá de nuevo en un segundo");
     miVoto = opcion;
     pintarEncuesta();
+    // Después de votar, la que saltó se va sola (quedan los resultados arriba).
+    if ($("emergente").open) setTimeout(() => $("emergente").open && $("emergente").close(), 1500);
+  }
+  $("encuesta").addEventListener("click", votar);
+  $("emergente").addEventListener("click", (ev) => {
+    if (ev.target === $("emergente")) return $("emergente").close(); // tocar afuera cierra
+    votar(ev);
   });
+  $("emergenteCerrar").addEventListener("click", () => $("emergente").close());
 
   // ---------- acciones del equipo ----------
 
   let elegido = null;
 
   $("lista").addEventListener("click", async (ev) => {
-    if (!yo || !yo.equipo) return;
+    if (!veTodo()) return;
     const li = ev.target.closest("li[data-id]");
     const x = li && porId.get(Number(li.dataset.id));
     if (!x) return;
     // La ✕: borra de una, con la posibilidad de deshacerlo.
-    if (ev.target.closest(".borrar-rapido")) {
+    if (ev.target.closest(".borrar-rapido") && esModerador()) {
       const id = x.m.id;
       try {
         await post("mensaje/borrar", { id });
@@ -443,7 +541,11 @@
     }
     elegido = x.m;
     const sancionable = typeof elegido.autor === "string" && elegido.autor.startsWith("c:");
-    $("hoja").querySelectorAll(".sancion").forEach((b) => (b.hidden = !sancionable));
+    $("hoja").querySelectorAll(".moderar").forEach((b) => (b.hidden = !esModerador()));
+    $("hoja").querySelectorAll(".sancion").forEach((b) => (b.hidden = !esModerador() || !sancionable));
+    const yaDestacado = !!estado.destacado && estado.destacado.id === elegido.id;
+    $("hoja").querySelector('[data-acc="destacar"]').hidden = yaDestacado;
+    $("hoja").querySelector('[data-acc="quitar"]').hidden = !yaDestacado;
     $("hojaMsj").innerHTML = `<b style="color:${colorDe(elegido.nick)}">${esc(elegido.nick)}</b>: ${esc(elegido.texto)}`;
     $("hoja").showModal();
   });
@@ -459,6 +561,9 @@
       if (b.dataset.acc === "destacar") {
         await post("mensaje/destacar", { id: m.id });
         toast("Destacado en la pantalla");
+      } else if (b.dataset.acc === "quitar") {
+        await post("destacado/quitar");
+        toast("Se sacó el destacado");
       } else if (b.dataset.acc === "borrar") {
         await post("mensaje/borrar", { id: m.id });
         toast("Borrado");
@@ -475,6 +580,102 @@
     }
   });
 
+  // ---------- armar encuestas (productores) ----------
+
+  function ponerOpcionesEnc(n) {
+    $("encOpciones").innerHTML = "";
+    for (let i = 0; i < n; i++) agregarOpcionEnc();
+  }
+
+  function agregarOpcionEnc() {
+    const n = $("encOpciones").children.length;
+    if (n >= 6) return;
+    const i = document.createElement("input");
+    i.maxLength = 60;
+    i.placeholder = "Opción " + (n + 1);
+    $("encOpciones").appendChild(i);
+  }
+
+  async function cargarEncuestas() {
+    let d;
+    try {
+      d = await (await fetch("/api/encuestas")).json();
+    } catch {
+      return;
+    }
+    const actual = (d.encuestas || []).find((e) => e.id === d.enPantalla);
+    $("encActual").innerHTML = actual
+      ? `<h3>En pantalla</h3><div class="enc-item"><div class="pregunta-enc">${esc(actual.pregunta)}</div>` +
+        `<div class="estado-enc">${actual.estado === "abierta" ? "Votando ahora" : "Mostrando resultados"} · ${(actual.conteos || []).reduce((a, b) => a + b, 0)} votos</div>` +
+        (actual.estado === "abierta" ? `<button type="button" data-enc="cerrar" data-id="${actual.id}" class="principal">Cerrar la votación</button>` : "") +
+        `<button type="button" data-enc="ocultar" class="secundario">Sacarla de la pantalla</button></div>`
+      : "";
+    const preparadas = (d.encuestas || []).filter((e) => e.estado === "borrador");
+    $("encLista").innerHTML = preparadas.length
+      ? "<h3>Preparadas</h3>" +
+        preparadas
+          .map(
+            (e) =>
+              `<div class="enc-item"><div class="pregunta-enc">${esc(e.pregunta)}</div><div class="estado-enc">${e.opciones.map(esc).join(" · ")}</div>` +
+              `<button type="button" data-enc="lanzar" data-id="${e.id}" class="principal">Lanzar</button></div>`
+          )
+          .join("")
+      : "";
+  }
+
+  $("btnEncuestas").addEventListener("click", () => {
+    $("encError").textContent = "";
+    if (!$("encPregunta").value) ponerOpcionesEnc(2);
+    $("dlgEncuestas").showModal();
+    cargarEncuestas();
+  });
+  $("encCerrarDlg").addEventListener("click", () => $("dlgEncuestas").close());
+  $("encMas").addEventListener("click", agregarOpcionEnc);
+
+  async function crearEncuesta(lanzar) {
+    $("encError").textContent = "";
+    const datos = { pregunta: $("encPregunta").value, opciones: [...$("encOpciones").querySelectorAll("input")].map((i) => i.value.trim()).filter(Boolean) };
+    try {
+      const { id } = await post("encuesta/crear", datos);
+      if (lanzar) await post("encuesta/abrir", { id });
+      $("encPregunta").value = "";
+      ponerOpcionesEnc(2);
+      toast(lanzar ? "¡Encuesta lanzada!" : "Encuesta guardada");
+      if (lanzar) $("dlgEncuestas").close();
+      else cargarEncuestas();
+    } catch (e) {
+      $("encError").textContent = e.message;
+    }
+  }
+
+  $("formEncuesta").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    crearEncuesta(true);
+  });
+  $("encGuardar").addEventListener("click", () => crearEncuesta(false));
+
+  $("dlgEncuestas").addEventListener("click", async (ev) => {
+    const b = ev.target.closest("button[data-enc]");
+    if (!b) return;
+    const id = Number(b.dataset.id);
+    try {
+      if (b.dataset.enc === "lanzar") {
+        await post("encuesta/abrir", { id });
+        toast("¡Encuesta lanzada!");
+        $("dlgEncuestas").close();
+      } else if (b.dataset.enc === "cerrar") {
+        await post("encuesta/cerrar", { id });
+        toast("Votación cerrada");
+      } else if (b.dataset.enc === "ocultar") {
+        await post("encuesta/ocultar");
+        toast("Encuesta fuera de la pantalla");
+      }
+      cargarEncuestas();
+    } catch (e) {
+      toast(e.message, true);
+    }
+  });
+
   // ---------- conexión ----------
 
   function alRecibir(m) {
@@ -484,9 +685,10 @@
         estado = { ...estado, ...m };
         if (m.yo) {
           yo = m.yo;
-          $("miNick").textContent = yo.nick;
+          $("miNick").innerHTML = (yo.equipo ? iconoRol(yo.rol) : "") + esc(yo.nick);
         }
         miVoto = m.encuesta ? m.encuesta.miVoto : null;
+        if (m.encuesta && m.encuesta.miVoto != null) emergenteVista = m.encuesta.id + ":" + m.encuesta.estado; // ya votó: no salta
         recibido = true;
         rearmarFeed(m.mensajes || []);
         pintarEncuesta();
@@ -498,6 +700,9 @@
         break;
       case "borrar":
         sacarMensaje(m.id);
+        break;
+      case "destacado":
+        ponerDestacado(m.d);
         break;
       case "ack":
         alAck(m);
@@ -511,6 +716,7 @@
         estado.encuesta = m.e;
         miVoto = m.e ? m.e.miVoto : null;
         pintarEncuesta();
+        if ($("dlgEncuestas").open) cargarEncuestas();
         break;
       case "votos":
         if (estado.encuesta && estado.encuesta.id === m.encuesta) {

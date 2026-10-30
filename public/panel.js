@@ -1,7 +1,7 @@
 // Panel de producción: moderar, destacar, encuestas, ajustes de pantalla y admin.
 (function () {
   "use strict";
-  const { Conexion, urlWs, esc, colorDe, svgQR, servidor } = window.Comun;
+  const { Conexion, urlWs, esc, colorDe, svgQR, servidor, iconoRol, ROLES } = window.Comun;
   const $ = (id) => document.getElementById(id);
 
   const S = {
@@ -175,7 +175,12 @@
     mostrarLogin();
   });
 
-  function iniciar() {
+  async function iniciar() {
+    // Los conductores no usan el panel: van al chat.
+    try {
+      const r = await fetch("/api/yo");
+      if (r.ok && (await r.json()).rol === "conductor") return location.replace("/");
+    } catch {}
     $("login").hidden = true;
     $("app").hidden = false;
     if (con) return;
@@ -350,7 +355,7 @@
       : m.disp === "simulacion"
         ? '<span class="chip">simulado</span>'
         : delEquipo(m)
-          ? '<span class="chip amarillo">equipo</span>'
+          ? `<span class="chip amarillo">${iconoRol(m.rol)} ${(ROLES[m.rol] || ROLES.productor)[1]}</span>`
           : "";
     li.innerHTML =
       `<div class="meta"><span class="nick" style="color:${m.prod ? "var(--acento2)" : colorDe(m.nick)}">${esc(m.nick)}</span>` +
@@ -811,7 +816,7 @@
           .map(
             (u) =>
               `<li data-usuario="${esc(u.usuario)}"><div class="u-nombre"><b>${esc(u.usuario)}</b>` +
-              `<select class="u-rol" aria-label="Rol"><option value="productor"${u.rol === "productor" ? " selected" : ""}>Productor</option><option value="admin"${u.rol === "admin" ? " selected" : ""}>Admin</option></select>` +
+              `<select class="u-rol" aria-label="Rol">${[["productor", "Productor"], ["conductor", "Conductor"], ["admin", "Admin"]].map(([v, t]) => `<option value="${v}"${u.rol === v ? " selected" : ""}>${t}</option>`).join("")}</select>` +
               (u.debil ? debil : "") +
               `</div>` +
               `<div class="fila-botones"><button data-acc="clave" class="boton chico secundario">Cambiarle la clave</button><button data-acc="borrar" class="boton chico peligro">Borrar</button></div></li>`
@@ -876,7 +881,7 @@
     const li = ev.target.closest("li[data-usuario]");
     if (!li || !ev.target.matches(".u-rol")) return;
     const usuario = li.dataset.usuario;
-    accion("usuario/editar", { usuario, rol: ev.target.value }, ev.target.value === "admin" ? `${usuario} ahora es admin` : `${usuario} ahora es productor`);
+    accion("usuario/editar", { usuario, rol: ev.target.value }, `${usuario} ahora es ${ev.target.value}`);
   });
 
   $("listaUsuarios").addEventListener("click", (ev) => {

@@ -24,6 +24,13 @@
     return `hsl(${h % 360} 90% 72%)`;
   }
 
+  // Ícono de cada rol del equipo, al lado del apodo (en la pantalla, el chat y el panel).
+  const ROLES = { conductor: ["🎙️", "Conducción"], productor: ["🎬", "Producción"], admin: ["👑", "Admin"] };
+  function iconoRol(rol) {
+    const [icono, nombre] = ROLES[rol] || ROLES.productor;
+    return `<span class="icono-rol" title="${nombre}" aria-label="${nombre}">${icono}</span>`;
+  }
+
   function esc(s) {
     return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   }
@@ -194,5 +201,5 @@
     }
   }
 
-  window.Comun = { Conexion, idAleatorio, servidor, urlWs, colorDe, esc, largo, guardado, svgQR };
+  window.Comun = { Conexion, idAleatorio, servidor, urlWs, colorDe, esc, largo, guardado, svgQR, iconoRol, ROLES };
 })();

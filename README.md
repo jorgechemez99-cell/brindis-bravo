@@ -1,6 +1,6 @@
 # Brindis Bravo · Chat en vivo
 
-Chat en vivo para un show presencial. La gente escanea un QR, se hace una cuenta con apodo y clave, y comenta desde el celular. Los mensajes salen en la pantalla del lugar, encima de lo que se esté proyectando, y en el celular de todos, en vivo. La producción modera desde el panel o desde el mismo chat, lanza encuestas y acomoda la pantalla con el mouse.
+Chat en vivo para un show presencial. La gente escanea un QR, se hace una cuenta con apodo y clave, y comenta desde el celular: los mensajes salen en la pantalla del lugar, encima de lo que se esté proyectando. Los conductores leen el chat completo en su celu sin darse vuelta, y la producción modera, destaca y lanza encuestas desde el mismo chat o desde el panel.
 
 Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no cambia nunca y aguanta de sobra a 150 personas.
 
@@ -12,6 +12,7 @@ Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no 
 
 - [Qué tiene](#qué-tiene)
 - [Las cuatro partes](#las-cuatro-partes)
+- [Quién ve qué](#quién-ve-qué)
 - [Primera vez: la clave del admin y el equipo](#primera-vez-la-clave-del-admin-y-el-equipo)
 - [El público](#el-público)
 - [Moderar](#moderar)
@@ -29,12 +30,14 @@ Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no 
 
 ## Qué tiene
 
-- **Chat en vivo en cada celular**: sin bajar nada. Se entra escaneando el QR.
+- **Un solo QR para todos**: abre la puerta de entrada y a cada uno lo lleva a su lugar según su rol (público, conductor, productor o admin). Sin bajar nada.
 - **Cuentas con apodo y clave**: cada apodo es de una sola persona y cada celular puede crear una sola cuenta, así nadie aparece con dos nombres.
+- **Cada rol ve lo suyo**: el público ve sus mensajes, los de la producción, los destacados y las encuestas (que le saltan solas); conductores y productores ven el chat completo.
+- **Íconos por rol** al lado del nombre: 🎙️ conducción, 🎬 producción, 👑 admin, y 📢 para los mensajes de la producción.
 - **Pantalla transparente** encima de lo que se proyecta, con el chat, un mensaje destacado, la encuesta y el QR. Cada caja se puede mover, agrandar, ocultar y cambiar de opacidad.
 - **App de escritorio** (Mac y Windows) que pone el chat encima de todo, con una botonera: **Editar** la pantalla ahí mismo con el mouse, **Usar la PC** normal viendo todo, y **Ocultar** todo de una.
 - **Título** "Brindis Bravo · programa de ahora" y **contador de gente** conectada (los dos se pueden ocultar).
-- **Moderación desde el chat**: el equipo entra al mismo chat con su usuario y tiene una ✕ en cada mensaje (con *Deshacer*), además de destacar, **silenciar** (5, 15 o 60 minutos) y **vetar**.
+- **Moderación desde el chat**: los productores tienen una ✕ en cada mensaje (con *Deshacer*), además de destacar, **silenciar** (5, 15 o 60 minutos), **vetar**, mandar **📢 mensajes de la producción** y **armar encuestas**, todo desde el celu.
 - **Panel de producción**: moderar, aprobar antes de mostrar, pausar, mensajes de la producción, encuestas, armado de la pantalla, QR para imprimir, equipo y programas.
 - **Encuestas en vivo** con resultados animados en pantalla.
 - **Mensajes fijos** (opcional): quedan en pantalla hasta que los empujen otros nuevos.
@@ -45,10 +48,23 @@ Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no 
 
 | Dónde | Quién | Para qué |
 |---|---|---|
-| `/` (lo abre el QR) | El público y el equipo, desde el celular | Entrar con apodo y clave, ver el chat en vivo, escribir y votar. El equipo además modera ahí mismo |
-| `/panel` | Admin y productores | Todo el control del show (ver abajo) |
+| `/` (lo abre el QR) | Todos, desde el celular | La puerta de entrada: crear la cuenta o entrar, y cada uno va a su lugar (ver [Quién ve qué](#quién-ve-qué)) |
+| `/panel` | Admin (y productores, si lo necesitan) | Todo el control del show: pantalla, equipo, programas, encuestas, QR |
 | App **Brindis Bravo** | La compu que proyecta | Pone el chat encima de todo lo que haya en esa compu; se edita con el mouse |
 | `/pantalla` | OBS o un navegador | La misma capa del chat, con fondo transparente, para usar sin la app |
+
+## Quién ve qué
+
+Todos entran por el mismo QR (o por la dirección del sitio). El público crea su cuenta con **¡Sumate al chat!**; el equipo entra con **¿Ya tenés cuenta? Entrá acá** y su usuario del panel. Según el rol, cada uno termina en un lugar distinto:
+
+| Rol | A dónde va | Qué ve | Qué puede hacer |
+|---|---|---|---|
+| **Público** | Su chat | Lo que manda, los mensajes de la producción y del equipo, los avisos de destacado ("⭐ ¡Destacaron tu mensaje!") y las encuestas, que le saltan en el medio de la pantalla | Escribir y votar |
+| 🎙️ **Conductor** | El chat completo | Todo lo que escribe el público, en vivo, para leerlo sin darse vuelta a mirar la pantalla | Escribir y **destacar** mensajes (tocando el mensaje) |
+| 🎬 **Productor** | El chat completo, con herramientas | Todo | Lo del conductor, más ✕ borrar (con *Deshacer*), silenciar, vetar, **📢** mandar como producción, **📊 Encuestas** (armar, lanzar, cerrar). Tiene un link al **Panel** |
+| 👑 **Admin** | El **panel** | Todo | Todo, incluido el equipo y los programas. Desde el panel, **💬 Chat** lo lleva al chat con las herramientas del productor |
+
+Los roles los asigna el admin en el panel (pestaña **Equipo**). Lo que escribe el equipo sale en la pantalla con el ícono de su rol.
 
 ## Primera vez: la clave del admin y el equipo
 
@@ -58,24 +74,25 @@ Todo se hace desde el navegador, sin terminal.
 2. Pestaña **Equipo → Agregar a alguien del equipo**: usuario, clave y rol. Al tocar **Agregar** aparece un cuadrito con el link, el usuario y la clave para **Copiar** o **Compartir…** por WhatsApp.
 3. Cada uno cambia su clave con **Mi clave** (arriba a la derecha). Si una clave es fácil de adivinar, el panel lo avisa en amarillo hasta que se cambie.
 
-**Roles**
-
-- **Productor**: todo lo del show: programa de ahora, moderar, silenciar, vetar, destacar, encuestas y pantalla.
-- **Admin**: lo mismo, y además crea cuentas del equipo y programas.
+**Roles del equipo**: 🎬 **Productor**, 🎙️ **Conductor** y 👑 **Admin** (ver [Quién ve qué](#quién-ve-qué)). El rol de cada uno se cambia ahí mismo, en **Quiénes entran al panel**, y se guarda solo.
 
 ## El público
 
 - Escanea el QR → **¡Sumate al chat!** → apodo y clave → **Entrar al chat**.
 - Si cierra la página o vuelve otro día, sigue adentro (la sesión dura 30 días). Desde otro celular entra con **¿Ya tenés cuenta? Entrá acá**.
-- Ve el chat en vivo, escribe (hasta 280 caracteres, con una espera mínima entre mensajes que se ajusta en el panel) y vota las encuestas.
-- El **equipo** entra por el mismo **Entrá acá** con su usuario del panel. Lo que escribe sale con la marca **EQUIPO**.
+- Escribe (hasta 280 caracteres, con una espera mínima entre mensajes que se ajusta en el panel) y lo que manda sale en la pantalla.
+- En su celu ve **sólo lo suyo** (a la derecha), los **mensajes de la producción** (📢) y del equipo (🎙️ 🎬 👑), y un aviso cada vez que se **destaca** un mensaje en la pantalla. Si es el suyo: "⭐ ¡Destacaron tu mensaje en la pantalla!".
+- Cuando se lanza una **encuesta**, le salta en el medio de la pantalla. Al votar se cierra sola y arriba quedan los resultados en vivo.
+- El chat completo lo ven los conductores y la producción, y la pantalla del lugar.
 
 ## Moderar
 
-**Desde el chat del celu** (entrando con el usuario del equipo):
+**Desde el chat del celu** (entrando con un usuario de productor; los conductores sólo destacan):
 
 - La **✕** de cada mensaje lo borra al instante, de la pantalla y de todos los celus. Abajo aparece **Deshacer** unos segundos, por si fue sin querer.
-- **Tocando un mensaje**: Destacar en la pantalla, Borrar, Silenciar 5 min / 15 min / 1 hora, Vetar.
+- **Tocando un mensaje**: Destacar en la pantalla (o quitar el destacado), Borrar, Silenciar 5 min / 15 min / 1 hora, Vetar.
+- **📢** al lado de donde se escribe: prendido, lo que se manda sale como **mensaje de la producción**, resaltado en amarillo en la pantalla y en todos los celus.
+- **📊 Encuestas**: armar una (pregunta y opciones) y **Lanzar ahora** o **Guardar para después**; lanzar las preparadas; **Cerrar la votación** y **Sacarla de la pantalla**.
 
 **Desde el panel**, pestaña **Chat**: los mismos botones en cada mensaje, más:
 
@@ -146,10 +163,10 @@ xattr -cr "/Applications/Brindis Bravo.app"
 
 ## Encuestas
 
-Pestaña **Encuestas** del panel:
+Desde el chat del productor (**📊 Encuestas**) o desde la pestaña **Encuestas** del panel:
 
 1. Se preparan antes (pregunta y de 2 a 6 opciones) y quedan como *preparada*.
-2. **Lanzar**: aparece en la pantalla y en los celus, y se vota en vivo. Cada uno puede cambiar su voto.
+2. **Lanzar**: aparece en la pantalla y le salta en el celu a todo el público; se vota en vivo y cada uno puede cambiar su voto.
 3. **Cerrar votación**: quedan los resultados en pantalla.
 4. **Ocultar** cuando ya no hace falta.
 
@@ -161,8 +178,8 @@ Se pueden reabrir y mostrar resultados de encuestas viejas.
 
 1. Abrir la app en la compu que proyecta, conectada al proyector.
 2. Elegir el programa de ahora en el panel.
-3. Que cada uno escanee el QR, se haga la cuenta y mande mensajes.
-4. Probar: borrar con la ✕ y deshacer, destacar, silenciar, vetar (y perdonar), pausar, limpiar y una encuesta de punta a punta.
+3. Que cada uno escanee el QR, se haga la cuenta y mande mensajes. Un conductor y un productor entran con su usuario.
+4. Probar: borrar con la ✕ y deshacer, destacar (también desde el conductor), 📢 mensaje de la producción, silenciar, vetar (y perdonar), pausar, limpiar y una encuesta de punta a punta desde **📊 Encuestas**.
 5. Acomodar todo mirando el proyector real con **✏️ Editar**.
 6. Imprimir el QR desde la pestaña **QR**.
 
@@ -173,7 +190,7 @@ Se pueden reabrir y mostrar resultados de encuestas viejas.
 - [ ] El **programa de ahora** elegido (sale en el título).
 - [ ] Encuestas preparadas.
 - [ ] QR impreso en las mesas y/o visible en pantalla.
-- [ ] Alguien del equipo con el chat o el panel abierto en el celu.
+- [ ] Los conductores con el chat abierto en el celu, y un productor con el chat (o el panel).
 - [ ] Nadie publica cambios del código durante el show (reinicia la sala y todos se reconectan).
 
 ## Si algo falla
@@ -200,7 +217,7 @@ No es ilimitado: es gratis **hasta cierto uso por día**. Los contadores vuelven
 
 Los mensajes que llegan de los celulares se cuentan 20 por pedido y los que salen hacia los celulares no se cobran: por eso rinde tanto. Con 150 personas se usa más o menos un 10% del cupo. Si algún día se pasara, el chat deja de responder hasta las 21:00. Para eventos mucho más grandes está el plan pago de Workers (USD 5 por mes).
 
-Probado con 150 celulares simulados, cada uno con su cuenta: más de 500 mensajes en 45 segundos, ninguno perdido ni duplicado, todos los celus recibieron el chat completo y la encuesta dio exacta.
+Probado con 150 celulares simulados, cada uno con su cuenta, más un conductor: 550 mensajes en 45 segundos, ninguno perdido ni duplicado, el conductor los recibió todos, al público no le llegó ningún mensaje ajeno, y la encuesta dio exacta.
 
 ## Armar tu propia copia
 
