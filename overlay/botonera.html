@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Brindis Bravo</title>
+<style>
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  body { font: 700 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: #f4f4f8; user-select: none; }
+  /* Se ve tenue para no molestar en la proyección; al pasar el mouse se ve entera. */
+  .pastilla { display: flex; align-items: center; gap: 6px; height: 100%; box-sizing: border-box; padding: 5px 6px; border-radius: 999px; background: rgb(16 16 22 / 0.92); border: 1px solid #3a3a4c; opacity: 0.45; transition: opacity 0.2s; }
+  .pastilla:hover, .pastilla.editando { opacity: 1; }
+  .agarre { -webkit-app-region: drag; cursor: grab; display: flex; align-items: center; gap: 6px; padding: 0 6px 0 8px; height: 100%; color: #a3a3b5; }
+  .punto { width: 9px; height: 9px; border-radius: 50%; background: #ffb13d; }
+  .punto.conectado { background: #2ee59d; }
+  .punto.desconectado { background: #ff4b4b; }
+  button { -webkit-app-region: no-drag; font: inherit; color: #fff; border: 0; border-radius: 999px; padding: 0 12px; height: 100%; background: #2a2a38; cursor: pointer; white-space: nowrap; }
+  button:hover { background: #3a3a4c; }
+  #modo.activo { background: linear-gradient(90deg, #ff3d7f, #ff6a4d); }
+  #visible.apagado { background: #4a1f24; color: #ffb3b3; }
+</style>
+</head>
+<body>
+<div class="pastilla" id="pastilla">
+  <div class="agarre" title="Arrastrá para mover"><span class="punto" id="punto"></span>⠿</div>
+  <button id="modo" title="Editar: mover y agrandar las cajas ahí mismo. Usar la PC: se ve todo y la compu se maneja normal.">✏️ Editar</button>
+  <button id="visible" title="Ocultar o mostrar todo el chat de la pantalla">🙈 Ocultar</button>
+</div>
+<script>
+  const $ = (id) => document.getElementById(id);
+  $("modo").onclick = () => window.overlay.botonera("modo");
+  $("visible").onclick = () => window.overlay.botonera("visible");
+  window.overlay.alEstadoBotonera((s) => {
+    const editando = s.modo === "editar";
+    $("modo").textContent = editando ? "🖱 Usar la PC" : "✏️ Editar";
+    $("modo").classList.toggle("activo", editando);
+    $("visible").textContent = s.visible ? "🙈 Ocultar" : "👁 Mostrar";
+    $("visible").classList.toggle("apagado", !s.visible);
+    $("pastilla").classList.toggle("editando", editando || !s.visible);
+    $("punto").className = "punto " + (s.conexion || "");
+  });
+</script>
+</body>
+</html>

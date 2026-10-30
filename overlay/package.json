@@ -1,0 +1,18 @@
+{
+  "name": "brindis-bravo-pantalla",
+  "productName": "Brindis Bravo",
+  "version": "1.0.0",
+  "description": "Pone el chat en vivo encima de lo que se proyecta",
+  "main": "main.js",
+  "private": true,
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "45.1.0"
+  },
+  "allowScripts": {
+    "electron@45.1.0": true
+  },
+  "dependencies": {
+    "koffi": "2.16.3"
+  }
+}

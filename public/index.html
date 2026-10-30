@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#101016">
+<title>Brindis Bravo · Chat en vivo</title>
+<link rel="stylesheet" href="publico.css">
+</head>
+<body>
+<header class="cabecera">
+  <span class="punto" id="punto" title="Conexión"></span>
+  <div class="titulos">
+    <span class="marca">Brindis Bravo</span>
+    <span class="linea2"><span class="programa" id="programa" hidden></span><span class="gente" id="gente" hidden></span></span>
+  </div>
+  <div class="yo" id="zonaYo" hidden>
+    <span id="miNick"></span>
+    <button id="btnSalir" class="link" type="button">Salir</button>
+  </div>
+</header>
+
+<!-- ---------- entrar ---------- -->
+<section id="acceso" class="acceso" hidden>
+  <form id="formNuevo" class="tarjeta">
+    <h1>¡Sumate al chat!</h1>
+    <p class="nota">Elegí tu apodo y una clave. El apodo queda para vos: nadie más lo puede usar.</p>
+    <label>Apodo <input id="nNick" maxlength="24" autocomplete="username" autocapitalize="words" spellcheck="false" required></label>
+    <label>Clave <input id="nClave" type="password" autocomplete="new-password" minlength="4" required></label>
+    <label class="check"><input type="checkbox" class="verClave"> Mostrar la clave</label>
+    <button class="boton">Entrar al chat</button>
+    <p id="nError" class="error"></p>
+    <p class="cambiar">¿Ya tenés cuenta? <button type="button" class="link" data-modo="entrar">Entrá acá</button></p>
+  </form>
+  <form id="formEntrar" class="tarjeta" hidden>
+    <h1>Entrá al chat</h1>
+    <label>Apodo <input id="eNick" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+    <label>Clave <input id="eClave" type="password" autocomplete="current-password" required></label>
+    <label class="check"><input type="checkbox" class="verClave"> Mostrar la clave</label>
+    <button class="boton">Entrar</button>
+    <p id="eError" class="error"></p>
+    <p class="cambiar">¿Primera vez? <button type="button" class="link" data-modo="nuevo">Elegí tu apodo</button></p>
+  </form>
+</section>
+
+<!-- ---------- chat ---------- -->
+<section id="chat" class="chat" hidden>
+  <div id="aviso" class="aviso" hidden></div>
+  <details id="encuesta" class="encuesta" hidden></details>
+  <div id="feed" class="feed">
+    <p id="feedVacio" class="vacio">Todavía no hay mensajes. ¡Arrancá vos!</p>
+    <ul id="lista"></ul>
+  </div>
+  <button id="nuevos" class="nuevos" type="button" hidden>↓ Mensajes nuevos</button>
+  <form id="formMsj" class="redactar">
+    <textarea id="texto" rows="1" placeholder="Escribí tu comentario…" enterkeyhint="send"></textarea>
+    <span id="contador" class="contador" hidden></span>
+    <button id="enviar" class="boton enviar" aria-label="Enviar">➤</button>
+  </form>
+</section>
+
+<!-- ---------- acciones del equipo sobre un mensaje ---------- -->
+<dialog id="hoja" class="hoja">
+  <div id="hojaMsj" class="hoja-msj"></div>
+  <button data-acc="destacar">★ Destacar en la pantalla</button>
+  <button data-acc="borrar">Borrar</button>
+  <button data-acc="silencio" data-min="5" class="sancion">Silenciar 5 minutos</button>
+  <button data-acc="silencio" data-min="15" class="sancion">Silenciar 15 minutos</button>
+  <button data-acc="silencio" data-min="60" class="sancion">Silenciar 1 hora</button>
+  <button data-acc="veto" class="sancion peligro">Vetar (para siempre)</button>
+  <button data-acc="cancelar" class="cancelar">Cancelar</button>
+</dialog>
+
+<div id="toast" class="toast" hidden></div>
+<script src="comun.js"></script>
+<script src="publico.js"></script>
+</body>
+</html>

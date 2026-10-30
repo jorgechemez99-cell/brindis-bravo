@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101016">
+<meta name="robots" content="noindex">
+<title>Brindis Bravo · Producción</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+<section id="login" class="login" hidden>
+  <form id="formLogin" class="tarjeta">
+    <div class="marca-login">Brindis Bravo</div>
+    <h1>Panel de producción</h1>
+    <label>Usuario <input id="lUsuario" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+    <label>Clave <input id="lClave" type="password" autocomplete="current-password" required></label>
+    <label class="check"><input type="checkbox" class="verClave"> Mostrar la clave</label>
+    <button class="boton">Entrar</button>
+    <p id="lError" class="error"></p>
+  </form>
+  <form id="formPrimera" class="tarjeta" hidden>
+    <div class="marca-login">Brindis Bravo</div>
+    <h1>¡Primera vez!</h1>
+    <p class="nota">Elegí la clave del admin. Con esa entrás vos, y desde adentro creás las cuentas de los productores. Esto se hace una sola vez.</p>
+    <label>Usuario <input value="admin" autocomplete="username" readonly></label>
+    <label>Clave nueva <input id="pClave" type="password" autocomplete="new-password" minlength="4" required></label>
+    <label>Repetí la clave <input id="pClave2" type="password" autocomplete="new-password" required></label>
+    <label class="check"><input type="checkbox" class="verClave"> Mostrar la clave</label>
+    <button class="boton">Guardar y entrar</button>
+    <p id="pError" class="error"></p>
+  </form>
+</section>
+
+<dialog id="dlgClave" class="dialogo">
+  <form id="formMiClave">
+    <h2>Cambiar mi clave</h2>
+    <label>Clave actual <input id="mcActual" type="password" autocomplete="current-password" required></label>
+    <label>Clave nueva <input id="mcNueva" type="password" autocomplete="new-password" minlength="4" required></label>
+    <label>Repetí la clave nueva <input id="mcNueva2" type="password" autocomplete="new-password" required></label>
+    <label class="check"><input type="checkbox" class="verClave"> Mostrar las claves</label>
+    <p id="mcError" class="error"></p>
+    <div class="fila-botones">
+      <button class="boton">Guardar</button>
+      <button type="button" id="mcCancelar" class="link">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="app" hidden>
+  <header class="barra">
+    <div class="aire">
+      <span id="aireEstado" class="titulo-chat"></span>
+      <select id="selAire" aria-label="Programa que estamos viendo" title="El programa que estamos viendo: sale en el título del chat"></select>
+    </div>
+    <div class="contadores">
+      <span id="cPantallas" class="chip"></span>
+      <span id="cPublico" class="chip"></span>
+      <span id="cConexion" class="chip"></span>
+    </div>
+    <div class="yo"><span id="yo"></span> <button id="btnMiClave" class="link">Mi clave</button> <button id="btnSalir" class="link">Salir</button></div>
+  </header>
+
+  <div id="avisoClave" class="aviso" hidden>Tu clave es muy fácil de adivinar. Antes del show cambiala tocando <button class="link abrirMiClave">Mi clave</button>, acá arriba.</div>
+
+  <div class="controles">
+    <label class="interruptor"><input type="checkbox" id="chkPausa"><span>Pausar chat</span></label>
+    <label class="interruptor"><input type="checkbox" id="chkAprob"><span>Aprobar antes de mostrar</span></label>
+    <button id="btnLimpiar" class="boton secundario chico">Limpiar pantalla</button>
+  </div>
+
+  <nav class="pestanas">
+    <button data-tab="chat">Chat</button>
+    <button data-tab="encuestas">Encuestas</button>
+    <button data-tab="pantalla">Pantalla</button>
+    <button data-tab="admin" id="tabAdmin">Equipo</button>
+    <button data-tab="qr">QR</button>
+  </nav>
+
+  <main>
+    <!-- ---------- CHAT ---------- -->
+    <section id="tab-chat" class="tab">
+      <div id="cajaDestacado" class="tarjeta destacado" hidden></div>
+      <form id="formProd" class="tarjeta fila-form">
+        <input id="prodTexto" placeholder="Mensaje de la producción (sale resaltado)" maxlength="280">
+        <button class="boton">Enviar</button>
+      </form>
+      <div class="cabecera-lista">
+        <h2>Mensajes</h2>
+        <a id="linkExportar" class="link" href="#" download>Descargar todo (CSV)</a>
+      </div>
+      <ul id="feed" class="feed"></ul>
+      <p id="feedVacio" class="vacio">Todavía no llegó ningún mensaje.</p>
+      <details class="tarjeta bloqueados">
+        <summary>Silenciados y vetados (<span id="nBloq">0</span>)</summary>
+        <ul id="listaBloq"></ul>
+      </details>
+    </section>
+
+    <!-- ---------- ENCUESTAS ---------- -->
+    <section id="tab-encuestas" class="tab" hidden>
+      <form id="formEnc" class="tarjeta">
+        <h2 id="tituloFormEnc">Nueva encuesta</h2>
+        <label>Programa <select id="encPrograma"></select></label>
+        <label>Pregunta <input id="encPregunta" maxlength="140" placeholder="¿Quién tiene razón?" required></label>
+        <div id="encOpciones" class="opciones-form"></div>
+        <div class="fila-botones">
+          <button type="button" id="encAgregar" class="boton secundario chico">+ Opción</button>
+        </div>
+        <div class="fila-botones">
+          <button class="boton" id="encGuardar">Guardar</button>
+          <button type="button" id="encCancelar" class="link" hidden>Cancelar edición</button>
+        </div>
+      </form>
+      <div id="listaEnc"></div>
+    </section>
+
+    <!-- ---------- PANTALLA ---------- -->
+    <section id="tab-pantalla" class="tab" hidden>
+      <div class="visibles" id="visibles">
+        <span class="nota">En pantalla:</span>
+        <label class="interruptor"><input type="checkbox" data-caja="ventana"><span>Chat</span></label>
+        <label class="interruptor"><input type="checkbox" data-caja="encuesta"><span>Encuesta</span></label>
+        <label class="interruptor"><input type="checkbox" data-caja="destacado"><span>Destacado</span></label>
+        <label class="interruptor"><input type="checkbox" data-caja="qr"><span>QR</span></label>
+        <label class="interruptor"><input type="checkbox" id="chkTitulo"><span>Título del chat</span></label>
+        <label class="interruptor"><input type="checkbox" id="chkContador"><span>Contador de gente</span></label>
+      </div>
+      <div class="visibles">
+        <label class="interruptor"><input type="checkbox" id="chkFijos"><span>Los mensajes quedan hasta que los empujen otros nuevos</span></label>
+      </div>
+      <div class="lienzo" id="lienzo">
+        <div class="fondo-muestra"><span>Lo que proyectan</span></div>
+        <iframe id="vista" title="Vista previa de la pantalla" tabindex="-1"></iframe>
+        <div class="marco" data-caja="destacado"><span>Destacado</span></div>
+        <div class="marco" data-caja="ventana"><span>Chat</span></div>
+        <div class="marco" data-caja="encuesta"><span>Encuesta</span></div>
+        <div class="marco" data-caja="qr"><span>QR</span></div>
+      </div>
+      <p class="nota">Arrastrá cada recuadro para moverlo y tirá de sus bordes o esquinas para cambiarle el tamaño. En la encuesta y el destacado la letra se acomoda sola al tamaño de la caja. Todo se aplica en vivo.</p>
+      <div id="ajustes" class="grilla-ajustes"></div>
+      <div class="tarjeta">
+        <label>Dirección que abre el QR <input id="urlQR" placeholder="(la de este sitio)" spellcheck="false"></label>
+      </div>
+      <div class="fila-botones">
+        <button id="btnSimular" class="boton secundario">Simular público (8 mensajes)</button>
+        <button id="btnRestablecer" class="link">Volver a los valores iniciales</button>
+      </div>
+    </section>
+
+    <!-- ---------- EQUIPO ---------- -->
+    <section id="tab-admin" class="tab" hidden>
+      <div class="tarjeta">
+        <h2>Agregar a alguien del equipo</h2>
+        <form id="formUsuario">
+          <div class="dos-columnas">
+            <label>Usuario <input id="nuUsuario" placeholder="ej: juan" autocapitalize="none" autocomplete="off" spellcheck="false" required></label>
+            <label>Clave <input id="nuClave" placeholder="mínimo 4 letras" autocapitalize="none" autocomplete="off" spellcheck="false" required></label>
+          </div>
+          <p class="pregunta">¿Qué puede hacer?</p>
+          <div class="roles">
+            <label class="rol"><input type="radio" name="nuRol" value="productor" checked><span><b>Productor</b>Maneja el chat (silenciar, vetar, destacar), las encuestas, la pantalla y el programa de ahora.</span></label>
+            <label class="rol"><input type="radio" name="nuRol" value="admin"><span><b>Admin</b>Lo mismo, y además crea cuentas del equipo y programas.</span></label>
+          </div>
+          <button class="boton">Agregar</button>
+        </form>
+        <div id="acceso" class="acceso" hidden>
+          <p><b>¡Listo!</b> Mandale esto para que entre:</p>
+          <pre id="accesoTexto"></pre>
+          <div class="fila-botones">
+            <button id="btnCompartir" class="boton chico">Compartir…</button>
+            <button id="btnCopiar" class="boton chico secundario">Copiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Quiénes entran al panel</h2>
+        <p class="nota">El cambio de rol se guarda solo. Estas mismas cuentas sirven para entrar al chat del público desde el celu y moderar ahí.</p>
+        <ul id="listaUsuarios" class="lista-admin"></ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Programas</h2>
+        <ul id="listaProgramas" class="lista-admin"></ul>
+        <form id="formPrograma" class="fila-form">
+          <input id="nuevoPrograma" placeholder="Nombre del programa nuevo" maxlength="60" required>
+          <button class="boton chico">Crear</button>
+        </form>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Dirección del panel</h2>
+        <p class="nota">Desde cualquier celu o compu se entra acá:</p>
+        <div class="fila-form"><input id="urlPanel" readonly><button id="btnCopiarPanel" class="boton chico secundario">Copiar</button></div>
+      </div>
+    </section>
+
+    <!-- ---------- QR ---------- -->
+    <section id="tab-qr" class="tab" hidden>
+      <div id="qrImprimible" class="tarjeta qr-imprimible">
+        <div class="marca-login">Brindis Bravo</div>
+        <h2>Escaneá y comentá en la pantalla</h2>
+        <div id="qrGrande"></div>
+        <p id="qrUrl" class="qr-url"></p>
+      </div>
+      <div class="fila-botones">
+        <button id="btnImprimir" class="boton">Imprimir</button>
+        <button id="btnQRpng" class="boton secundario">Descargar PNG</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+<script src="vendor/qrcode.js"></script>
+<script src="comun.js"></script>
+<script src="panel.js"></script>
+</body>
+</html>
