@@ -1,5 +1,5 @@
 // La puerta de entrada (la abre el QR): entrar o crear la cuenta, y cada uno ve lo suyo.
-//   - Público: lo que manda, lo de la producción, los destacados y las encuestas (que saltan).
+//   - Público: no ve el chat. Escribe, ve los destacados un rato y las encuestas (que saltan).
 //   - Conductor: el chat completo; escribe y destaca.
 //   - Productor: el chat completo con todo para moderar y armar encuestas.
 //   - Admin: va al panel (con ?chat=1 se queda en el chat, como productor).
@@ -38,7 +38,8 @@
   const rol = () => (yo && yo.rol) || "publico";
   const esModerador = () => rol() === "admin" || rol() === "productor";
   const veTodo = () => rol() !== "publico";
-  const destacadosVistos = new Set(); // los avisos de destacado que ya se pusieron en la lista del público
+  const DESTACADO_PUBLICO_MS = 15000; // cuánto le queda a la vista al público un destacado
+  const enRevision = new Set(); // ids de mensajes propios que esperan aprobación (vista del público)
 
   let tToast;
   function toast(texto, malo, accion) {
@@ -153,9 +154,9 @@
     $("herramientas").hidden = !veTodo();
     $("btnEncuestas").hidden = !esModerador();
     $("rolTexto").textContent = { admin: "Admin: tocá un mensaje para moderarlo", productor: "Productor: tocá un mensaje para moderarlo", conductor: "Conducción: tocá un mensaje para destacarlo" }[rol()] || "";
-    $("feedVacio").textContent = veTodo()
-      ? "Todavía no hay mensajes."
-      : "Escribí abajo y tu mensaje sale en la pantalla 📺. Acá vas a ver lo que mandás, los mensajes de la producción, los destacados y las encuestas.";
+    $("feedVacio").textContent = "Todavía no hay mensajes.";
+    $("feed").hidden = !veTodo();
+    $("panelPublico").hidden = veTodo();
     conectar();
     pintar();
   }
@@ -284,25 +285,41 @@
     $("feedVacio").hidden = true;
   }
 
-  // Lo destacado en la pantalla: el equipo lo ve marcado con ★ en el chat; el público
-  // recibe un aviso en su lista (y si es su mensaje, se entera).
+  // Lo destacado en la pantalla: el equipo lo ve marcado con ★ en el chat; al público le
+  // aparece una tarjeta un rato (y si es su mensaje, se entera).
+  let tDestacado;
   function ponerDestacado(d) {
     estado.destacado = d;
     marcarDestacado();
-    if (!d || veTodo()) return;
-    const clave = d.id + ":" + d.desde;
-    if (destacadosVistos.has(clave)) return;
-    destacadosVistos.add(clave);
-    const pegado = cercaDelFinal();
-    const li = document.createElement("li");
-    li.className = "destacado-aviso";
+    if (veTodo()) return;
+    const el = $("destacadoPublico");
+    clearTimeout(tDestacado);
+    const queda = d ? DESTACADO_PUBLICO_MS - (ahora() - d.desde) : 0;
+    if (queda <= 0) {
+      el.hidden = true;
+      return;
+    }
     const mio = yo && d.autor === yo.autor;
-    li.innerHTML =
+    el.className = "destacado-publico" + (mio ? " mio" : "");
+    el.innerHTML =
       `<span class="etiqueta-dest">${mio ? "⭐ ¡Destacaron tu mensaje en la pantalla!" : "⭐ Destacado en la pantalla"}</span>` +
       `<span class="nick" style="color:${d.prod ? "var(--acento2)" : colorDe(d.nick)}">${esc(d.nick)}</span><span class="txt">${esc(d.texto)}</span>`;
-    insertarEnOrden(li, d.desde);
-    if (pegado) alFinal();
-    else $("nuevos").hidden = false;
+    el.hidden = false;
+    tDestacado = setTimeout(() => {
+      el.classList.add("sale");
+      tDestacado = setTimeout(() => (el.hidden = true), 600);
+    }, queda);
+  }
+
+  // Al público, en vez de una lista, una línea que le dice cómo le fue a lo que mandó.
+  let tEnvio;
+  function estadoEnvio(texto, tipo = "", ms = 4000) {
+    const el = $("estadoEnvio");
+    clearTimeout(tEnvio);
+    el.textContent = texto;
+    el.className = "estado-envio " + tipo;
+    el.hidden = false;
+    if (ms) tEnvio = setTimeout(() => (el.hidden = true), ms);
   }
 
   function marcarDestacado() {
@@ -331,11 +348,10 @@
   function rearmarFeed(mensajes) {
     $("lista").innerHTML = "";
     porId.clear();
-    destacadosVistos.clear();
     mensajes.forEach(ponerMensaje);
     ponerDestacado(estado.destacado);
     // Lo que todavía no se confirmó queda al final, esperando.
-    for (const p of pendientes.values()) $("lista").appendChild(p.li);
+    if (veTodo()) for (const p of pendientes.values()) $("lista").appendChild(p.li);
     $("feedVacio").hidden = $("lista").children.length > 0;
     alFinal();
   }
@@ -407,8 +423,10 @@
     const li = document.createElement("li");
     li.className = "propio enviando";
     li.innerHTML = htmlMensaje({ nick: yo.nick, texto, equipo: yo.equipo, rol: yo.rol }, "Enviando…");
-    $("lista").appendChild(li);
-    $("feedVacio").hidden = true;
+    if (veTodo()) {
+      $("lista").appendChild(li);
+      $("feedVacio").hidden = true;
+    } else estadoEnvio("Enviando…", "espera", 0);
     pendientes.set(cid, { texto, li, enviado: Date.now() });
     ultimoEnvio = Date.now();
     $("texto").value = "";
@@ -429,6 +447,11 @@
     const p = pendientes.get(m.cid);
     if (!p) return;
     pendientes.delete(m.cid);
+    if (m.ok && !veTodo()) {
+      if (m.estado === "pendiente") enRevision.add(m.id);
+      estadoEnvio(m.estado === "pendiente" ? "Lo están revisando: sale en la pantalla cuando lo aprueben" : "✓ Tu mensaje salió en la pantalla", m.estado === "pendiente" ? "espera" : "", m.estado === "pendiente" ? 0 : 4000);
+      return;
+    }
     if (m.ok) {
       if (porId.has(m.id)) {
         p.li.remove(); // ya llegó por el chat
@@ -447,6 +470,7 @@
       if (m.ahora) desfase = m.ahora - Date.now();
     }
     if (m.error === "sin-cuenta") return mostrarAcceso();
+    if (!veTodo()) estadoEnvio("No salió: " + (MOTIVOS[m.error] || (() => "no se pudo enviar"))(m), "malo", 6000);
     p.li.className = "propio error";
     p.li.innerHTML = htmlMensaje({ nick: yo.nick, texto: p.texto, equipo: yo.equipo, rol: yo.rol }, "No salió: " + (MOTIVOS[m.error] || (() => "no se pudo enviar"))(m));
     if (!$("texto").value.trim() && m.error !== "silencio") $("texto").value = p.texto; // se lo devolvemos para reintentar
@@ -696,10 +720,12 @@
         if (!m.yo) mostrarAcceso(); // la sesión venció
         break;
       case "msg":
-        ponerMensaje(m.m);
+        // Al público sólo le llega lo suyo, cuando lo aprueban (si estaba en revisión).
+        if (veTodo()) ponerMensaje(m.m);
+        else if (enRevision.delete(m.m.id)) estadoEnvio("✓ Aprobaron tu mensaje: salió en la pantalla");
         break;
       case "borrar":
-        sacarMensaje(m.id);
+        if (veTodo()) sacarMensaje(m.id);
         break;
       case "destacado":
         ponerDestacado(m.d);

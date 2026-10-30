@@ -32,7 +32,7 @@ Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no 
 
 - **Un solo QR para todos**: abre la puerta de entrada y a cada uno lo lleva a su lugar según su rol (público, conductor, productor o admin). Sin bajar nada.
 - **Cuentas con apodo y clave**: cada apodo es de una sola persona y cada celular puede crear una sola cuenta, así nadie aparece con dos nombres.
-- **Cada rol ve lo suyo**: el público ve sus mensajes, los de la producción, los destacados y las encuestas (que le saltan solas); conductores y productores ven el chat completo.
+- **Cada rol ve lo suyo**: el público no ve el chat; tiene su cajita para escribir, ve los destacados unos segundos y las encuestas (que le saltan solas). Conductores y productores ven el chat completo.
 - **Íconos por rol** al lado del nombre: 🎙️ conducción, 🎬 producción, 👑 admin, y 📢 para los mensajes de la producción.
 - **Pantalla transparente** encima de lo que se proyecta, con el chat, un mensaje destacado, la encuesta y el QR. Cada caja se puede mover, agrandar, ocultar y cambiar de opacidad.
 - **App de escritorio** (Mac y Windows) que pone el chat encima de todo, con una botonera: **Editar** la pantalla ahí mismo con el mouse, **Usar la PC** normal viendo todo, y **Ocultar** todo de una.
@@ -59,7 +59,7 @@ Todos entran por el mismo QR (o por la dirección del sitio). El público crea s
 
 | Rol | A dónde va | Qué ve | Qué puede hacer |
 |---|---|---|---|
-| **Público** | Su chat | Lo que manda, los mensajes de la producción y del equipo, los avisos de destacado ("⭐ ¡Destacaron tu mensaje!") y las encuestas, que le saltan en el medio de la pantalla | Escribir y votar |
+| **Público** | Su cajita para escribir | No ve el chat. Ve si su mensaje salió, los destacados durante unos segundos ("⭐ ¡Destacaron tu mensaje!" si es el suyo) y las encuestas, que le saltan en el medio de la pantalla | Escribir y votar |
 | 🎙️ **Conductor** | El chat completo | Todo lo que escribe el público, en vivo, para leerlo sin darse vuelta a mirar la pantalla | Escribir y **destacar** mensajes (tocando el mensaje) |
 | 🎬 **Productor** | El chat completo, con herramientas | Todo | Lo del conductor, más ✕ borrar (con *Deshacer*), silenciar, vetar, **📢** mandar como producción, **📊 Encuestas** (armar, lanzar, cerrar). Tiene un link al **Panel** |
 | 👑 **Admin** | El **panel** | Todo | Todo, incluido el equipo y los programas. Desde el panel, **💬 Chat** lo lleva al chat con las herramientas del productor |
@@ -80,8 +80,9 @@ Todo se hace desde el navegador, sin terminal.
 
 - Escanea el QR → **¡Sumate al chat!** → apodo y clave → **Entrar al chat**.
 - Si cierra la página o vuelve otro día, sigue adentro (la sesión dura 30 días). Desde otro celular entra con **¿Ya tenés cuenta? Entrá acá**.
-- Escribe (hasta 280 caracteres, con una espera mínima entre mensajes que se ajusta en el panel) y lo que manda sale en la pantalla.
-- En su celu ve **sólo lo suyo** (a la derecha), los **mensajes de la producción** (📢) y del equipo (🎙️ 🎬 👑), y un aviso cada vez que se **destaca** un mensaje en la pantalla. Si es el suyo: "⭐ ¡Destacaron tu mensaje en la pantalla!".
+- Escribe (hasta 280 caracteres, con una espera mínima entre mensajes que se ajusta en el panel) y lo que manda sale en la pantalla. Abajo le aparece "✓ Tu mensaje salió en la pantalla" (o por qué no salió, o que lo están revisando).
+- **No ve el chat**: ni lo que escribe el resto del público, ni lo del equipo o la producción. Eso está en la pantalla del lugar.
+- Cuando se **destaca** un mensaje, le aparece una tarjeta durante 15 segundos. Si es el suyo: "⭐ ¡Destacaron tu mensaje en la pantalla!".
 - Cuando se lanza una **encuesta**, le salta en el medio de la pantalla. Al votar se cierra sola y arriba quedan los resultados en vivo.
 - El chat completo lo ven los conductores y la producción, y la pantalla del lugar.
 
@@ -91,7 +92,7 @@ Todo se hace desde el navegador, sin terminal.
 
 - La **✕** de cada mensaje lo borra al instante, de la pantalla y de todos los celus. Abajo aparece **Deshacer** unos segundos, por si fue sin querer.
 - **Tocando un mensaje**: Destacar en la pantalla (o quitar el destacado), Borrar, Silenciar 5 min / 15 min / 1 hora, Vetar.
-- **📢** al lado de donde se escribe: prendido, lo que se manda sale como **mensaje de la producción**, resaltado en amarillo en la pantalla y en todos los celus.
+- **📢** al lado de donde se escribe: prendido, lo que se manda sale como **mensaje de la producción**, resaltado en amarillo en la pantalla y en el chat del equipo.
 - **📊 Encuestas**: armar una (pregunta y opciones) y **Lanzar ahora** o **Guardar para después**; lanzar las preparadas; **Cerrar la votación** y **Sacarla de la pantalla**.
 
 **Desde el panel**, pestaña **Chat**: los mismos botones en cada mensaje, más:

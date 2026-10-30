@@ -51,11 +51,21 @@
   </div>
   <div id="aviso" class="aviso" hidden></div>
   <details id="encuesta" class="encuesta" hidden></details>
+  <!-- Lo que ve el público: no hay chat, sólo el destacado (un rato) y las encuestas -->
+  <section id="panelPublico" class="panel-publico" hidden>
+    <div id="destacadoPublico" class="destacado-publico" hidden></div>
+    <div class="bienvenida">
+      <div class="icono-grande">📺</div>
+      <p>Escribí abajo y tu mensaje sale en la pantalla.</p>
+      <p class="nota">Cuando destaquen un mensaje o lancen una encuesta, te aparece acá.</p>
+    </div>
+  </section>
   <div id="feed" class="feed">
     <p id="feedVacio" class="vacio"></p>
     <ul id="lista"></ul>
   </div>
   <button id="nuevos" class="nuevos" type="button" hidden>↓ Mensajes nuevos</button>
+  <div id="estadoEnvio" class="estado-envio" hidden></div>
   <form id="formMsj" class="redactar">
     <button type="button" id="btnProd" class="prod-toggle" hidden title="Mandar como mensaje de la producción (sale resaltado)" aria-pressed="false">📢</button>
     <textarea id="texto" rows="1" placeholder="Escribí tu comentario…" enterkeyhint="send"></textarea>

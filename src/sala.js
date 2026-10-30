@@ -130,7 +130,7 @@ export class Sala extends DurableObject {
     }
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_autor ON mensajes (autor)");
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_ts ON mensajes (ts)");
-    this.sql.exec(`CREATE INDEX IF NOT EXISTS mensajes_produccion ON mensajes (ts) WHERE ${DE_PRODUCCION}`);
+    this.sql.exec("DROP INDEX IF EXISTS mensajes_produccion"); // de cuando el público veía lo de la producción
   }
 
   // ---------- estado simple (clave/valor en memoria + SQLite) ----------
@@ -270,12 +270,11 @@ export class Sala extends DurableObject {
     if (autor) this.enviarA(["a:" + autor], obj);
   }
 
-  // Algo de un mensaje (que llegó, que se borró): el equipo lo ve siempre; el público sólo
-  // si es de la producción o si es suyo. Al vetado no se le avisa que lo borraron.
+  // Algo de un mensaje (que llegó, que se borró): el equipo lo ve siempre. Del público, sólo
+  // quien lo escribió (para saber que salió). Al vetado no se le avisa que lo borraron.
   aChat(obj, m, { vetado = false } = {}) {
     this.enviarA(["completo"], obj);
-    if (esDeProduccion(m)) this.enviarA(["propio"], obj);
-    else if (!vetado) this.aSocketsDe(m.autor, obj);
+    if (!vetado && !esEquipo(m.autor)) this.aSocketsDe(m.autor, obj);
   }
 
   aPaneles(obj) {
@@ -341,39 +340,21 @@ export class Sala extends DurableObject {
     };
   }
 
-  // Las dos listas que se mandan a cada celu que se conecta. Se guardan en memoria y se
-  // rehacen sólo cuando cambia algo, para no leer la base cada vez que alguien se reconecta.
-  //   completo: lo último del chat (para el equipo). El chat es uno solo, de corrido.
-  //   produccion: lo último que mandó la producción (lo único ajeno que ve el público).
+  // Lo último del chat, para el equipo (el chat es uno solo, de corrido). Se guarda en memoria
+  // y se rehace sólo cuando cambia algo, para no leer la base cada vez que alguien se reconecta.
   ultimosVisibles() {
     this.cache.completo ??= this.sql.exec("SELECT id, nick, texto, ts, prod, autor, rol, estado FROM mensajes WHERE estado = 'ok' ORDER BY ts DESC LIMIT 100").toArray().reverse();
     return this.cache.completo;
   }
 
-  ultimosDeProduccion() {
-    this.cache.produccion ??= this.sql
-      .exec(`SELECT id, nick, texto, ts, prod, autor, rol, estado FROM mensajes WHERE ${DE_PRODUCCION} AND estado = 'ok' ORDER BY ts DESC LIMIT 40`)
-      .toArray()
-      .reverse();
-    return this.cache.produccion;
-  }
-
-  olvidarListas(m) {
+  olvidarListas() {
     this.cache.completo = null;
-    if (!m || esDeProduccion(m)) this.cache.produccion = null;
   }
 
-  // El equipo ve todo el chat. El público ve lo suyo (también lo que está en revisión, o
-  // vetado: el vetado lo sigue viendo como si nada) y lo de la producción.
+  // El equipo ve todo el chat. El público no ve mensajes: sólo escribe, ve los destacados
+  // (un rato) y las encuestas.
   mensajesPublico(adj) {
-    if (adj.nivel !== "publico") return this.ultimosVisibles().map(paraPublico);
-    const propios = adj.autor
-      ? this.sql.exec("SELECT id, nick, texto, ts, prod, autor, rol, estado FROM mensajes WHERE autor = ? AND estado IN ('ok', 'pendiente', 'vetado') ORDER BY ts DESC LIMIT 60", adj.autor).toArray()
-      : [];
-    return [...this.ultimosDeProduccion(), ...propios]
-      .sort((a, b) => a.ts - b.ts)
-      .slice(-100)
-      .map(paraPublico);
+    return adj.nivel === "publico" ? [] : this.ultimosVisibles().map(paraPublico);
   }
 
   estadoPantalla() {
@@ -519,7 +500,7 @@ export class Sala extends DurableObject {
       )
       .one();
     const msg = { ...m, id: fila.id };
-    this.olvidarListas(msg);
+    this.olvidarListas();
     return msg;
   }
 
@@ -540,7 +521,7 @@ export class Sala extends DurableObject {
 
   cambiarEstado(m, estado, extra = {}) {
     this.sql.exec("UPDATE mensajes SET estado = ? WHERE id = ?", estado, m.id);
-    this.olvidarListas(m);
+    this.olvidarListas();
     this.aPaneles({ t: "msgEstado", id: m.id, estado, ...extra });
     if (estado !== "ok") {
       this.aPantallas({ t: "borrar", id: m.id });
@@ -905,7 +886,7 @@ export class Sala extends DurableObject {
       const m = this.mensaje(b.id);
       if (m.estado !== "borrado") return;
       this.sql.exec("UPDATE mensajes SET estado = 'ok' WHERE id = ?", m.id);
-      this.olvidarListas(m);
+      this.olvidarListas();
       const pm = paraPantalla(m);
       this.aPantallas({ t: "msg", m: pm });
       this.aChat({ t: "msg", m: pm }, m);
@@ -917,7 +898,7 @@ export class Sala extends DurableObject {
       if (m.estado !== "pendiente") return;
       const ts = Date.now();
       this.sql.exec("UPDATE mensajes SET estado = 'ok', ts = ? WHERE id = ?", ts, m.id);
-      this.olvidarListas(m);
+      this.olvidarListas();
       const pm = paraPantalla({ ...m, ts });
       this.aPantallas({ t: "msg", m: pm });
       this.aChat({ t: "msg", m: pm }, m);
@@ -1245,10 +1226,6 @@ function cookie(nombre, valor, url, maxAge) {
 
 const esEquipo = (autor) => typeof autor === "string" && autor.startsWith("u:");
 
-// Lo de la producción: mensajes del panel y todo lo que escribe el equipo. Es lo único ajeno
-// que ve el público en su celu. (La misma condición arma un índice: no cambiarla en un solo lugar.)
-const DE_PRODUCCION = "(prod = 1 OR substr(autor, 1, 2) = 'u:')";
-const esDeProduccion = (m) => !!m.prod || esEquipo(m.autor);
 
 // Para comparar apodos: sin acentos, sin mayúsculas, sin espacios de más.
 function normalizarNick(s) {
