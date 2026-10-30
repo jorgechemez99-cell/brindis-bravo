@@ -631,6 +631,23 @@ export class Sala extends DurableObject {
     return { encuesta: this.encuestaPublica(e), respuestas: this.respuestasLista(e.id, 200) };
   }
 
+  // El registro completo de una caja anónima, con quién escribió cada respuesta (sólo admin).
+  // Incluye las que no se ven (de vetados), marcadas.
+  registroAnonimo(encuesta) {
+    const filas = this.sql.exec("SELECT id, texto, ts, oculta, autor FROM respuestas WHERE encuesta = ? ORDER BY ts DESC LIMIT 1000", encuesta).toArray();
+    const nicks = new Map();
+    return filas.map((r) => {
+      if (!nicks.has(r.autor)) nicks.set(r.autor, this.nickDe(r.autor));
+      return { id: r.id, texto: r.texto, ts: r.ts, oculta: r.oculta, quien: nicks.get(r.autor), equipo: esEquipo(r.autor) };
+    });
+  }
+
+  nickDe(autor) {
+    if (esEquipo(autor)) return autor.slice(2);
+    const c = this.sql.exec("SELECT nick FROM cuentas WHERE id = ?", Number(String(autor).slice(2))).toArray()[0];
+    return c ? c.nick : "(cuenta borrada)";
+  }
+
   respuestasLista(encuesta, cuantas) {
     return this.sql.exec("SELECT id, texto, ts FROM respuestas WHERE encuesta = ? AND oculta = 0 ORDER BY ts DESC LIMIT ?", encuesta, cuantas).toArray();
   }
@@ -919,7 +936,13 @@ export class Sala extends DurableObject {
     if (ruta === "mi-clave" && req.method === "POST") return this.cambiarMiClave(req, u);
     if (ruta === "estado" && req.method === "GET") return json(this.configPanel(u));
     if (ruta === "encuestas" && req.method === "GET") return json(this.encuestasParaChat());
-    if (ruta === "respuestas" && req.method === "GET") return json({ respuestas: this.respuestasLista(Number(url.searchParams.get("encuesta")), 500) });
+    if (ruta === "respuestas" && req.method === "GET") {
+      const encuesta = Number(url.searchParams.get("encuesta"));
+      if (url.searchParams.get("autores") !== "1") return json({ respuestas: this.respuestasLista(encuesta, 500) });
+      // Quién escribió cada respuesta: sólo el admin, para casos de producción.
+      this.exigirAdmin(u);
+      return json({ respuestas: this.registroAnonimo(encuesta) });
+    }
     if (ruta === "exportar" && req.method === "GET") return this.exportar(u, url);
     if (req.method !== "POST") throw new ErrorApi(405, "Método no permitido");
     const accion = this.acciones[ruta];
@@ -1028,8 +1051,15 @@ export class Sala extends DurableObject {
     },
 
     // Silenciar (unos minutos, la persona ve hasta cuándo) o vetar (para siempre, no se entera).
+    // Por un mensaje (b.id) o, sólo el admin, por una respuesta de la caja anónima (b.respuesta).
     sancionar(u, b) {
-      const m = this.mensaje(b.id);
+      let m;
+      if (b.respuesta != null) {
+        this.exigirAdmin(u);
+        const r = this.sql.exec("SELECT autor FROM respuestas WHERE id = ?", Number(b.respuesta)).toArray()[0];
+        if (!r) throw new ErrorApi(404, "Esa respuesta no existe");
+        m = { autor: r.autor, nick: this.nickDe(r.autor) };
+      } else m = this.mensaje(b.id);
       if (!m.autor || !m.autor.startsWith("c:")) throw new ErrorApi(400, "A esa persona no se la puede sancionar");
       const tipo = b.tipo === "veto" ? "veto" : "silencio";
       const minutos = Math.max(1, Math.min(1440, Math.round(Number(b.minutos) || 5)));
@@ -1041,6 +1071,11 @@ export class Sala extends DurableObject {
         // Lo que ya mandó sale de la pantalla y de los otros celus.
         for (const x of this.sql.exec("SELECT * FROM mensajes WHERE autor = ? AND estado IN ('ok', 'pendiente')", s.autor).toArray()) {
           this.cambiarEstado(x, "vetado");
+        }
+        // Sus respuestas anónimas dejan de verse (quedan en el registro del admin).
+        if (this.sql.exec("UPDATE respuestas SET oculta = 1 WHERE autor = ? AND oculta = 0 RETURNING id", s.autor).toArray().length) {
+          this.nRespuestas.clear();
+          this.enviarA(["completo"], { t: "cajaAnonima", c: this.cajaAnonima() });
         }
       }
       this.refrescarPanelesPronto();
@@ -1125,6 +1160,10 @@ export class Sala extends DurableObject {
     "encuesta/borrar"(u, b) {
       const e = this.encuesta(b.id);
       if (this.leer("encuestaPantalla", null) === e.id) throw new ErrorApi(400, "Primero ocultala de la pantalla");
+      // Las respuestas de una caja anónima son el registro del admin: sólo él puede borrarlas.
+      if (e.tipo === "anonima" && u.rol !== "admin" && this.sql.exec("SELECT id FROM respuestas WHERE encuesta = ? LIMIT 1", e.id).toArray().length) {
+        throw new ErrorApi(403, "Una caja anónima con respuestas sólo la puede borrar un admin (queda como registro)");
+      }
       this.sql.exec("DELETE FROM votos WHERE encuesta = ?", e.id);
       this.sql.exec("DELETE FROM respuestas WHERE encuesta = ?", e.id);
       this.sql.exec("DELETE FROM encuestas WHERE id = ?", e.id);

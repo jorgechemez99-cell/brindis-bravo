@@ -514,6 +514,7 @@
   });
 
   const respuestasAbiertas = {}; // caja anónima -> respuestas que se están mirando
+  const registroAbierto = {}; // caja anónima -> respuestas con quién las escribió (sólo admin)
 
   function pintarEncuestas() {
     const lista = [...S.encuestas].sort((a, b) => (a.programa === S.aire ? -1 : 0) - (b.programa === S.aire ? -1 : 0) || b.id - a.id);
@@ -545,14 +546,28 @@
         b.push('<button data-acc="borrar" class="boton chico peligro">Borrar</button>');
       }
       if (anonima && e.estado !== "borrador") {
-        b.push(`<button data-acc="respuestas" class="boton chico secundario">${respuestasAbiertas[e.id] ? "Ocultar respuestas" : "Ver respuestas"}</button>`);
+        b.push(`<button data-acc="respuestas" class="boton chico secundario">${respuestasAbiertas[e.id] || registroAbierto[e.id] ? "Ocultar respuestas" : "Ver respuestas"}</button>`);
+        if (esAdmin() && respuestasAbiertas[e.id] && !registroAbierto[e.id]) b.push('<button data-acc="autores" class="boton chico peligro">🔒 Ver quién escribió</button>');
       }
       const verResp = respuestasAbiertas[e.id];
-      const detalle = anonima
-        ? verResp
-          ? `<ul class="respuestas">${verResp.map((r) => `<li>${esc(r.texto)}<span class="nota">${hora(r.ts)}</span></li>`).join("") || '<li class="vacio">Todavía no respondió nadie.</li>'}</ul>`
-          : ""
-        : null;
+      const registro = registroAbierto[e.id];
+      const detalle = !anonima
+        ? null
+        : registro
+          ? '<p class="nota">🔒 Registro sólo para admins: quién escribió cada respuesta. Usalo sólo si hace falta.</p>' +
+            `<ul class="respuestas">${
+              registro
+                .map(
+                  (r) =>
+                    `<li>${esc(r.texto)}<span class="nota">${hora(r.ts)} · <b>${esc(r.quien)}</b>${r.oculta ? " · no se ve (vetado)" : ""}</span>` +
+                    (r.equipo || r.oculta ? "" : ` <button class="link" data-acc="vetar-resp" data-resp="${r.id}" data-quien="${esc(r.quien)}">Vetar</button>`) +
+                    `</li>`
+                )
+                .join("") || '<li class="vacio">Todavía no respondió nadie.</li>'
+            }</ul>`
+          : verResp
+            ? `<ul class="respuestas">${verResp.map((r) => `<li>${esc(r.texto)}<span class="nota">${hora(r.ts)}</span></li>`).join("") || '<li class="vacio">Todavía no respondió nadie.</li>'}</ul>`
+            : "";
       const opciones = e.opciones
         .map((o, i) => {
           if (!e.conteos) return `<div class="opc"><span>${esc(o)}</span></div>`;
@@ -563,7 +578,7 @@
       return (
         `<div class="tarjeta enc${enPantalla ? " en-pantalla" : ""}" data-id="${e.id}">` +
         `<div class="cabeza"><span class="chip">${anonima ? "📮 Caja anónima" : "📊 Encuesta"}</span><span class="chip">${esc(nombrePrograma(e.programa))}</span>${estado}` +
-        (anonima ? `<span class="nota">${e.respuestas || 0} respuestas</span>` : e.conteos ? `<span class="nota">${total} votos</span>` : "") +
+        (anonima ? `<span class="nota">${e.respuestas || 0} ${e.respuestas === 1 ? "respuesta" : "respuestas"}</span>` : e.conteos ? `<span class="nota">${total} votos</span>` : "") +
         `</div><div class="pregunta">${esc(e.pregunta)}</div>${anonima ? detalle : opciones}<div class="fila-botones">${b.join("")}</div></div>`
       );
     });
@@ -582,9 +597,33 @@
     else if (a === "mostrar") accion("encuesta/mostrar", { id });
     else if (a === "ocultar") accion("encuesta/ocultar");
     else if (a === "borrar" && confirm(e && e.tipo === "anonima" ? "¿Borrar esta caja anónima y sus respuestas?" : "¿Borrar esta encuesta y sus votos?")) accion("encuesta/borrar", { id });
-    else if (a === "respuestas") {
-      if (respuestasAbiertas[id]) {
+    else if (a === "autores") {
+      if (!confirm("Esto muestra quién escribió cada respuesta de la caja anónima.\n\nEs sólo para casos de producción (algo muy desubicado). ¿Ver los nombres?")) return;
+      fetch("/api/respuestas?autores=1&encuesta=" + id)
+        .then((r) => r.json())
+        .then((d) => {
+          if (!d.respuestas) return toast(d.error || "No se pudo", true);
+          registroAbierto[id] = d.respuestas;
+          pintarEncuestas();
+        })
+        .catch(() => toast("Sin conexión", true));
+    } else if (a === "vetar-resp") {
+      const quien = b.dataset.quien;
+      if (confirm(`¿Vetar a "${quien}" para siempre?\n\nSe borra todo lo que mandó, sus respuestas anónimas dejan de verse y lo que mande después no lo ve nadie (no se entera).`)) {
+        api("sancionar", { respuesta: Number(b.dataset.resp), tipo: "veto" }).then(
+          () => {
+            toast(`${quien}: vetado`);
+            delete registroAbierto[id];
+            delete respuestasAbiertas[id];
+            pintarEncuestas();
+          },
+          () => {}
+        );
+      }
+    } else if (a === "respuestas") {
+      if (respuestasAbiertas[id] || registroAbierto[id]) {
         delete respuestasAbiertas[id];
+        delete registroAbierto[id];
         pintarEncuestas();
       } else
         fetch("/api/respuestas?encuesta=" + id)

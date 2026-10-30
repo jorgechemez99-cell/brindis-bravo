@@ -64,7 +64,7 @@ Todos entran por el mismo QR (o por la dirección del sitio). El público crea s
 | **Público** | Su cajita para escribir | No ve el chat. Ve si su mensaje salió, los destacados y los avisos 📢 de la producción durante unos segundos ("⭐ ¡Destacaron tu mensaje!" si es el suyo), y las encuestas y cajas anónimas, que le saltan en el medio de la pantalla | Escribir, votar y responder las cajas anónimas |
 | 🎙️ **Conductor** | El chat completo | Todo lo que escribe el público, en vivo, para leerlo sin darse vuelta a mirar la pantalla, y las respuestas de la **caja anónima** | Escribir y **destacar** mensajes (tocando el mensaje) |
 | 🎬 **Productor** | El chat completo, con herramientas | Todo, incluidas las respuestas de la caja anónima | Lo del conductor, más ✕ borrar (con *Deshacer*), silenciar, vetar, **📢** mandar como producción, **📊 Encuestas** (armar, lanzar y cerrar encuestas y cajas anónimas). Tiene un link al **Panel** |
-| 👑 **Admin** | El **panel** | Todo | Todo, incluido el equipo y los programas. Desde el panel, **💬 Chat** lo lleva al chat con las herramientas del productor |
+| 👑 **Admin** | El **panel** | Todo, y es el único que puede ver el **registro de la caja anónima** (quién escribió cada respuesta) | Todo, incluido el equipo y los programas. Desde el panel, **💬 Chat** lo lleva al chat con las herramientas del productor |
 
 Los roles los asigna el admin en el panel (pestaña **Equipo**). Lo que escribe el equipo sale en la pantalla con el ícono de su rol.
 
@@ -186,6 +186,8 @@ Se pueden reabrir y mostrar resultados de encuestas viejas.
 4. **Dejar de recibir respuestas** la cierra; las respuestas se pueden seguir leyendo.
 
 Silenciados no pueden responder; las respuestas de los vetados no las ve nadie.
+
+**🔒 Registro (sólo admins)**: cada respuesta queda guardada con quién la escribió, por si algo es muy desubicado. Conductores y productores las leen siempre anónimas, así el juego sigue. Sólo un admin puede ver los nombres, y tiene que pedirlo a propósito: en el panel, **Encuestas → Ver respuestas → 🔒 Ver quién escribió** (pide confirmación). Desde ahí puede **Vetar** a quien escribió algo desubicado: sus respuestas dejan de verse para los conductores y lo que mande después no lo ve nadie. Para que el registro no se pierda, una caja anónima con respuestas sólo la puede borrar un admin.
 
 ## Ensayo y noche del show
 
