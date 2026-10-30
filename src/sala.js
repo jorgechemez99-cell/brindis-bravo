@@ -144,6 +144,12 @@ export class Sala extends DurableObject {
       if (a && !a.destacadoSeg) this.guardar("ajustes", { ...a, destacadoSeg: 10 });
       this.guardar("version", 4);
     }
+    if (this.leer("version", 1) < 5) {
+      // Jorge pidió destacados más cortos (estaba en 40 s): de una vez, 10 s. Se sigue cambiando en el panel.
+      const a = this.leer("ajustes");
+      if (a && (!a.destacadoSeg || a.destacadoSeg > 10)) this.guardar("ajustes", { ...a, destacadoSeg: 10 });
+      this.guardar("version", 5);
+    }
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_autor ON mensajes (autor)");
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_ts ON mensajes (ts)");
     this.sql.exec("DROP INDEX IF EXISTS mensajes_produccion"); // de cuando el público veía lo de la producción
