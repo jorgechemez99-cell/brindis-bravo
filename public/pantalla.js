@@ -132,9 +132,15 @@
       }, 400);
       return;
     }
-    el.className = d.prod ? "prod" : "";
-    const color = d.prod ? "" : ` style="color:${colorDe(d.nick)}"`;
-    el.innerHTML = `<span class="nick"${color}>${esc(d.nick)}</span><span class="texto">${esc(d.texto)}</span>`;
+    if (d.anonima) {
+      // Respuesta de la caja anónima: sin nombre, con la pregunta como contexto.
+      el.className = "anonima";
+      el.innerHTML = `<span class="contexto">📮 ${esc(d.pregunta || "Caja anónima")}</span><span class="texto">${esc(d.texto)}</span><span class="firma">— Anónimo</span>`;
+    } else {
+      el.className = d.prod ? "prod" : "";
+      const color = d.prod ? "" : ` style="color:${colorDe(d.nick)}"`;
+      el.innerHTML = `<span class="nick"${color}>${esc(d.nick)}</span><span class="texto">${esc(d.texto)}</span>`;
+    }
     el.hidden = false;
     ajustarCajas();
     el.style.animation = "none";

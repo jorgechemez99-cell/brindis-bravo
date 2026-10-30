@@ -48,7 +48,7 @@ const LIMITES = {
 // Roles del equipo. El conductor lee el chat completo en su celu, escribe y destaca; no modera.
 const ROLES = ["admin", "productor", "conductor"];
 const rolValido = (r) => (ROLES.includes(r) ? r : "productor");
-const PUEDE_CONDUCTOR = new Set(["yo", "logout", "mi-clave", "mensaje/destacar", "destacado/quitar", "respuestas"]);
+const PUEDE_CONDUCTOR = new Set(["yo", "logout", "mi-clave", "mensaje/destacar", "respuesta/destacar", "destacado/quitar", "respuestas"]);
 
 // Apodos que nadie del público puede usar (además de los usuarios del equipo).
 const RESERVADOS = new Set(["admin", "produccion", "brindis bravo"]);
@@ -557,6 +557,11 @@ export class Sala extends DurableObject {
   }
 
   ponerDestacado(d) {
+    // Hasta cuándo se ve en la pantalla (para que los celus sepan cuándo dejó de estar).
+    if (d) {
+      const seg = this.ajustes().destacadoSeg;
+      d = { ...d, hasta: seg > 0 ? d.desde + seg * 1000 : null };
+    }
     this.guardar("destacado", d);
     this.aPantallas({ t: "destacado", d });
     this.aPublico({ t: "destacado", d }); // el público también ve lo que se destaca
@@ -1016,6 +1021,17 @@ export class Sala extends DurableObject {
       this.ponerDestacado({ id: m.id, nick: m.nick, texto: m.texto, prod: m.prod, autor: m.autor, desde: Date.now() });
     },
 
+    // Una respuesta de la caja anónima en el destacado de la pantalla, sin nombre y con la
+    // pregunta como contexto. Sólo quien la escribió se entera de que es la suya.
+    "respuesta/destacar"(u, b) {
+      const r = this.sql
+        .exec("SELECT r.id, r.texto, r.autor, r.oculta, e.pregunta FROM respuestas r JOIN encuestas e ON e.id = r.encuesta WHERE r.id = ?", Number(b.id))
+        .toArray()[0];
+      if (!r || r.oculta) throw new ErrorApi(404, "Esa respuesta no existe");
+      this.ponerDestacado({ id: "r" + r.id, anonima: 1, nick: "Anónimo", pregunta: r.pregunta, texto: r.texto, desde: Date.now() });
+      this.aSocketsDe(r.autor, { t: "tuRespuesta" });
+    },
+
     "destacado/quitar"(u) {
       this.ponerDestacado(null);
     },
@@ -1073,7 +1089,10 @@ export class Sala extends DurableObject {
           this.cambiarEstado(x, "vetado");
         }
         // Sus respuestas anónimas dejan de verse (quedan en el registro del admin).
-        if (this.sql.exec("UPDATE respuestas SET oculta = 1 WHERE autor = ? AND oculta = 0 RETURNING id", s.autor).toArray().length) {
+        const ocultas = this.sql.exec("UPDATE respuestas SET oculta = 1 WHERE autor = ? AND oculta = 0 RETURNING id", s.autor).toArray();
+        const d = this.destacadoVigente();
+        if (d && d.anonima && ocultas.some((r) => "r" + r.id === d.id)) this.ponerDestacado(null);
+        if (ocultas.length) {
           this.nRespuestas.clear();
           this.enviarA(["completo"], { t: "cajaAnonima", c: this.cajaAnonima() });
         }

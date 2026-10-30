@@ -560,13 +560,14 @@
                 .map(
                   (r) =>
                     `<li>${esc(r.texto)}<span class="nota">${hora(r.ts)} · <b>${esc(r.quien)}</b>${r.oculta ? " · no se ve (vetado)" : ""}</span>` +
+                    (r.oculta ? "" : ` <button class="link" data-acc="dest-resp" data-resp="${r.id}">★ Destacar</button>`) +
                     (r.equipo || r.oculta ? "" : ` <button class="link" data-acc="vetar-resp" data-resp="${r.id}" data-quien="${esc(r.quien)}">Vetar</button>`) +
                     `</li>`
                 )
                 .join("") || '<li class="vacio">Todavía no respondió nadie.</li>'
             }</ul>`
           : verResp
-            ? `<ul class="respuestas">${verResp.map((r) => `<li>${esc(r.texto)}<span class="nota">${hora(r.ts)}</span></li>`).join("") || '<li class="vacio">Todavía no respondió nadie.</li>'}</ul>`
+            ? `<ul class="respuestas">${verResp.map((r) => `<li>${esc(r.texto)}<span class="nota">${hora(r.ts)}</span> <button class="link" data-acc="dest-resp" data-resp="${r.id}">★ Destacar</button></li>`).join("") || '<li class="vacio">Todavía no respondió nadie.</li>'}</ul>`
             : "";
       const opciones = e.opciones
         .map((o, i) => {
@@ -607,6 +608,8 @@
           pintarEncuestas();
         })
         .catch(() => toast("Sin conexión", true));
+    } else if (a === "dest-resp") {
+      accion("respuesta/destacar", { id: Number(b.dataset.resp) }, "📮 Respuesta destacada en la pantalla");
     } else if (a === "vetar-resp") {
       const quien = b.dataset.quien;
       if (confirm(`¿Vetar a "${quien}" para siempre?\n\nSe borra todo lo que mandó, sus respuestas anónimas dejan de verse y lo que mande después no lo ve nadie (no se entera).`)) {

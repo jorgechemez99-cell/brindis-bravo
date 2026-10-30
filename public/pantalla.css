@@ -217,6 +217,27 @@ body {
   text-shadow: none;
 }
 
+/* Respuesta de la caja anónima destacada */
+#destacado.anonima {
+  border-color: #6cc8ff;
+}
+
+#destacado .contexto {
+  display: block;
+  font-size: 0.5em;
+  font-weight: 800;
+  color: #6cc8ff;
+  margin-bottom: 0.35em;
+}
+
+#destacado .firma {
+  display: block;
+  font-size: 0.45em;
+  font-weight: 700;
+  opacity: 0.75;
+  margin-top: 0.35em;
+}
+
 #destacado.sale {
   animation: desaparece 0.4s ease forwards;
 }

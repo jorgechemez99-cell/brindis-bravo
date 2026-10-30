@@ -288,10 +288,22 @@
   // Lo destacado en la pantalla: el equipo lo ve marcado con ★ en el chat; al público le
   // aparece una tarjeta un rato (y si es su mensaje, se entera).
   let tDestacado;
+  // El destacado que está en la pantalla ahora (se va solo cuando vence).
+  const destacadoAhora = () => {
+    const d = estado.destacado;
+    return d && (!d.hasta || ahora() < d.hasta) ? d : null;
+  };
+
+  let tVence;
   function ponerDestacado(d) {
     estado.destacado = d;
     marcarDestacado();
-    if (veTodo()) return;
+    if (veTodo()) {
+      // Para marcar qué mensaje o respuesta está en pantalla, y desmarcarlo cuando vence.
+      clearTimeout(tVence);
+      if (d && d.hasta) tVence = setTimeout(() => (marcarDestacado(), pintarCajaAnonima()), Math.max(0, d.hasta - ahora()) + 200);
+      return pintarCajaAnonima();
+    }
     const el = $("destacadoPublico");
     clearTimeout(tDestacado);
     const queda = d ? DESTACADO_PUBLICO_MS - (ahora() - d.desde) : 0;
@@ -304,6 +316,10 @@
       // 📢 Aviso de la producción: salta solo como destacado.
       el.className = "destacado-publico aviso-prod";
       el.innerHTML = `<span class="etiqueta-dest">📢 ${esc(d.nick)}</span><span class="txt">${esc(d.texto)}</span>`;
+    } else if (d.anonima) {
+      // 📮 Respuesta anónima destacada: sin nombre, con la pregunta.
+      el.className = "destacado-publico anonima-dest";
+      el.innerHTML = `<span class="etiqueta-dest">📮 Respuesta anónima destacada</span><span class="contexto-dest">${esc(d.pregunta || "")}</span><span class="txt">${esc(d.texto)}</span>`;
     } else {
       el.className = "destacado-publico" + (mio ? " mio" : "");
       el.innerHTML =
@@ -330,7 +346,7 @@
 
   function marcarDestacado() {
     if (!veTodo()) return;
-    const d = estado.destacado;
+    const d = destacadoAhora();
     for (const { m, li } of porId.values()) li.classList.toggle("es-destacado", !!d && d.id === m.id);
   }
 
@@ -596,6 +612,25 @@
     votar(ev);
     responder(ev);
   });
+
+  // ★ Destacar una respuesta anónima en la pantalla (conductores, productores y admin).
+  $("cajaAnonima").addEventListener("click", async (ev) => {
+    const b = ev.target.closest(".dest-resp");
+    if (!b) return;
+    const id = Number(b.dataset.resp);
+    const yaEsta = !!destacadoAhora() && destacadoAhora().id === "r" + id;
+    try {
+      if (yaEsta) {
+        await post("destacado/quitar");
+        toast("Se sacó de la pantalla");
+      } else {
+        await post("respuesta/destacar", { id });
+        toast("📮 Respuesta destacada en la pantalla");
+      }
+    } catch (e) {
+      toast(e.message, true);
+    }
+  });
   $("emergente").addEventListener("click", (ev) => {
     if (ev.target === $("emergente")) return $("emergente").close(); // tocar afuera cierra
     votar(ev);
@@ -614,11 +649,20 @@
     const e = c.encuesta;
     const n = c.respuestas.length;
     const estadoCaja = e.estado === "abierta" ? "recibiendo" : e.estado === "borrador" ? "preparada" : "cerrada";
+    const d = destacadoAhora();
+    const enPantalla = d && d.anonima ? d.id : null;
     el.innerHTML =
       `<summary><span class="etiqueta">📮 Caja anónima · ${n} ${n === 1 ? "respuesta" : "respuestas"} · ${estadoCaja}</span>${esc(e.pregunta)}</summary>` +
       (n
         ? `<ul class="respuestas">${c.respuestas
-            .map((r) => `<li>${esc(r.texto)}<span class="hora">${new Date(r.ts - desfase).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })}</span></li>`)
+            .map((r) => {
+              const destacada = enPantalla === "r" + r.id;
+              return (
+                `<li${destacada ? ' class="en-pantalla"' : ""}>${esc(r.texto)}` +
+                `<span class="hora">${new Date(r.ts - desfase).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })}${destacada ? " · ★ en la pantalla" : ""}</span>` +
+                `<button type="button" class="dest-resp" data-resp="${r.id}">${destacada ? "Sacarla de la pantalla" : "★ Destacar en la pantalla"}</button></li>`
+              );
+            })
             .join("")}</ul>`
         : '<div class="pie">Todavía no respondió nadie.</div>');
     if (cajaVista !== e.id) el.open = true; // una caja nueva aparece desplegada
@@ -651,7 +695,7 @@
     const sancionable = typeof elegido.autor === "string" && elegido.autor.startsWith("c:");
     $("hoja").querySelectorAll(".moderar").forEach((b) => (b.hidden = !esModerador()));
     $("hoja").querySelectorAll(".sancion").forEach((b) => (b.hidden = !esModerador() || !sancionable));
-    const yaDestacado = !!estado.destacado && estado.destacado.id === elegido.id;
+    const yaDestacado = !!destacadoAhora() && destacadoAhora().id === elegido.id;
     $("hoja").querySelector('[data-acc="destacar"]').hidden = yaDestacado;
     $("hoja").querySelector('[data-acc="quitar"]').hidden = !yaDestacado;
     $("hojaMsj").innerHTML = `<b style="color:${colorDe(elegido.nick)}">${esc(elegido.nick)}</b>: ${esc(elegido.texto)}`;
@@ -850,6 +894,10 @@
         break;
       case "respuestaOk":
         alRespuestaOk(m);
+        break;
+      case "tuRespuesta":
+        // Sólo le llega a quien la escribió: nadie más sabe que es suya.
+        estadoEnvio("⭐ ¡Destacaron tu respuesta anónima en la pantalla!", "", 7000);
         break;
       case "encuesta":
         estado.encuesta = m.e;

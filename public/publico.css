@@ -885,6 +885,41 @@ body.conductor #lista li[data-id]:active {
   color: var(--suave);
 }
 
+.respuestas li.en-pantalla {
+  box-shadow: inset 3px 0 0 #6cc8ff;
+  padding-left: 10px;
+}
+
+.dest-resp {
+  margin-top: 6px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: #6cc8ff;
+  background: #14222a;
+  border: 1px solid #2d4a5a;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* 📮 respuesta anónima destacada (vista del público) */
+.destacado-publico.anonima-dest {
+  border-color: #2d6a8a;
+  background: linear-gradient(180deg, #14222a, #111a20);
+}
+
+.destacado-publico.anonima-dest .etiqueta-dest {
+  color: #6cc8ff;
+}
+
+.contexto-dest {
+  display: block;
+  font-size: 14px;
+  color: var(--suave);
+  margin-bottom: 4px;
+}
+
 .enc-item {
   border: 1px solid var(--borde);
   border-radius: 12px;

@@ -62,7 +62,7 @@ Todos entran por el mismo QR (o por la dirección del sitio). El público crea s
 | Rol | A dónde va | Qué ve | Qué puede hacer |
 |---|---|---|---|
 | **Público** | Su cajita para escribir | No ve el chat. Ve si su mensaje salió, los destacados y los avisos 📢 de la producción durante unos segundos ("⭐ ¡Destacaron tu mensaje!" si es el suyo), y las encuestas y cajas anónimas, que le saltan en el medio de la pantalla | Escribir, votar y responder las cajas anónimas |
-| 🎙️ **Conductor** | El chat completo | Todo lo que escribe el público, en vivo, para leerlo sin darse vuelta a mirar la pantalla, y las respuestas de la **caja anónima** | Escribir y **destacar** mensajes (tocando el mensaje) |
+| 🎙️ **Conductor** | El chat completo | Todo lo que escribe el público, en vivo, para leerlo sin darse vuelta a mirar la pantalla, y las respuestas de la **caja anónima** | Escribir y **destacar** mensajes y respuestas anónimas |
 | 🎬 **Productor** | El chat completo, con herramientas | Todo, incluidas las respuestas de la caja anónima | Lo del conductor, más ✕ borrar (con *Deshacer*), silenciar, vetar, **📢** mandar como producción, **📊 Encuestas** (armar, lanzar y cerrar encuestas y cajas anónimas). Tiene un link al **Panel** |
 | 👑 **Admin** | El **panel** | Todo, y es el único que puede ver el **registro de la caja anónima** (quién escribió cada respuesta) | Todo, incluido el equipo y los programas. Desde el panel, **💬 Chat** lo lleva al chat con las herramientas del productor |
 
@@ -98,7 +98,7 @@ Todo se hace desde el navegador, sin terminal.
 - **Tocando un mensaje**: Destacar en la pantalla (o quitar el destacado), Borrar, Silenciar 5 min / 15 min / 1 hora, Vetar.
 - **📢** al lado de donde se escribe: prendido, lo que se manda sale como **mensaje de la producción**, resaltado en amarillo y **salta solo como destacado** en la pantalla y en el celu de todo el público.
 - **📊 Encuestas**: armar una encuesta (pregunta y opciones) o una **📮 caja anónima** (sólo la pregunta) y **Lanzar ahora** o **Guardar para después**; lanzar las preparadas; cerrarla y **Sacarla de la pantalla**.
-- **📮 Respuestas**: cuando hay una caja anónima, arriba del chat aparece una tarjeta con todas las respuestas en vivo, sin nombres (la ven conductores y productores).
+- **📮 Respuestas**: cuando hay una caja anónima, arriba del chat aparece una tarjeta con todas las respuestas en vivo, sin nombres (la ven conductores y productores), y cada una con **★ Destacar en la pantalla**.
 
 **Desde el panel**, pestaña **Chat**: los mismos botones en cada mensaje, más:
 
@@ -182,8 +182,9 @@ Se pueden reabrir y mostrar resultados de encuestas viejas.
 
 1. Se escribe sólo la pregunta (por ejemplo: "¿Qué le preguntarías al invitado?").
 2. **Lanzar**: en la pantalla sale la pregunta con un contador de respuestas, y al público le salta en el celu con un lugar para responder.
-3. Cada respuesta llega sin nombre al chat de conductores y productores (tarjeta 📮 arriba de todo) y al panel (**Ver respuestas**). En la pantalla no se muestran.
-4. **Dejar de recibir respuestas** la cierra; las respuestas se pueden seguir leyendo.
+3. Cada respuesta llega sin nombre al chat de conductores y productores (tarjeta 📮 arriba de todo) y al panel (**Ver respuestas**). En la pantalla no se muestran solas.
+4. **★ Destacar en la pantalla**: conductores, productores y admin pueden poner una respuesta en el destacado, como un aviso, para leerla u opinar: sale sin nombre ("— Anónimo") con la pregunta arriba como contexto, y al público le aparece en el celu. Sólo quien la escribió recibe en su celu "⭐ ¡Destacaron tu respuesta anónima!"; nadie más sabe de quién es.
+5. **Dejar de recibir respuestas** la cierra; las respuestas se pueden seguir leyendo y destacando.
 
 Silenciados no pueden responder; las respuestas de los vetados no las ve nadie.
 
