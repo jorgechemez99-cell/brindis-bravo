@@ -98,7 +98,6 @@ export class Sala extends DurableObject {
       CREATE TABLE IF NOT EXISTS mensajes (
         id INTEGER PRIMARY KEY AUTOINCREMENT, programa INTEGER, disp TEXT, cid TEXT,
         nick TEXT, texto TEXT, ts INTEGER, estado TEXT, prod INTEGER DEFAULT 0);
-      CREATE INDEX IF NOT EXISTS mensajes_programa ON mensajes (programa, ts);
       CREATE UNIQUE INDEX IF NOT EXISTS mensajes_cid ON mensajes (disp, cid);
       CREATE TABLE IF NOT EXISTS bloqueados (disp TEXT PRIMARY KEY, nick TEXT, ts INTEGER);
       CREATE TABLE IF NOT EXISTS encuestas (
@@ -153,6 +152,9 @@ export class Sala extends DurableObject {
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_autor ON mensajes (autor)");
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_ts ON mensajes (ts)");
     this.sql.exec("DROP INDEX IF EXISTS mensajes_produccion"); // de cuando el público veía lo de la producción
+    // Ya nada filtra los mensajes por programa (el chat es uno solo): este índice sólo sumaba
+    // una escritura por mensaje.
+    this.sql.exec("DROP INDEX IF EXISTS mensajes_programa");
   }
 
   // ---------- estado simple (clave/valor en memoria + SQLite) ----------
@@ -760,8 +762,17 @@ export class Sala extends DurableObject {
     );
   }
 
-  abrirSesionChat(cuenta, nick, url) {
+  // Borra las sesiones vencidas, como mucho una vez por hora: recorrerlas en cada login
+  // costaba una lectura por cada sesión guardada.
+  limpiarSesiones() {
+    if (Date.now() - (this.ultimaLimpiezaSesiones || 0) < 3600000) return;
+    this.ultimaLimpiezaSesiones = Date.now();
+    this.sql.exec("DELETE FROM sesiones WHERE vence < ?", Date.now());
     this.sql.exec("DELETE FROM sesiones_chat WHERE vence < ?", Date.now());
+  }
+
+  abrirSesionChat(cuenta, nick, url) {
+    this.limpiarSesiones();
     const token = tokenAleatorio();
     this.sql.exec("INSERT INTO sesiones_chat (token, cuenta, vence) VALUES (?, ?, ?)", token, cuenta, Date.now() + DURACION_SESION);
     return json({ ok: true, yo: { autor: "c:" + cuenta, nick, equipo: false, rol: "publico" } }, 200, { "Set-Cookie": cookie("chat", token, url, DURACION_SESION / 1000) });
@@ -868,7 +879,7 @@ export class Sala extends DurableObject {
   }
 
   abrirSesion(usuario, url, extra = {}) {
-    this.sql.exec("DELETE FROM sesiones WHERE vence < ?", Date.now());
+    this.limpiarSesiones();
     const token = tokenAleatorio();
     this.sql.exec("INSERT INTO sesiones (token, usuario, vence) VALUES (?, ?, ?)", token, usuario, Date.now() + DURACION_SESION);
     return json({ ok: true, ...extra }, 200, { "Set-Cookie": cookie("sesion", token, url, DURACION_SESION / 1000) });
