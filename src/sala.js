@@ -952,6 +952,10 @@ export class Sala extends DurableObject {
     if (ruta === "mi-clave" && req.method === "POST") return this.cambiarMiClave(req, u);
     if (ruta === "estado" && req.method === "GET") return json(this.configPanel(u));
     if (ruta === "encuestas" && req.method === "GET") return json(this.encuestasParaChat());
+    if (ruta === "cuentas" && req.method === "GET") {
+      this.exigirAdmin(u);
+      return json({ publico: this.sql.exec("SELECT COUNT(*) AS n FROM cuentas").one().n });
+    }
     if (ruta === "respuestas" && req.method === "GET") {
       const encuesta = Number(url.searchParams.get("encuesta"));
       if (url.searchParams.get("autores") !== "1") return json({ respuestas: this.respuestasLista(encuesta, 500) });
@@ -1309,6 +1313,40 @@ export class Sala extends DurableObject {
       if (b.programas != null) this.sql.exec("UPDATE usuarios SET programas = ? WHERE usuario = ?", JSON.stringify(this.programasValidos(b.programas)), usuario);
       if (b.rol != null) this.sql.exec("UPDATE usuarios SET rol = ? WHERE usuario = ?", rolValido(b.rol), usuario);
       this.refrescarPaneles();
+    },
+
+    // Deja sólo las cuentas del equipo que se tildaron (más el admin principal y quien lo pide)
+    // y, si se pide, borra todas las del público. Los mensajes quedan en el historial.
+    "cuentas/limpiar"(u, b) {
+      this.exigirAdmin(u);
+      const conservar = new Set((Array.isArray(b.conservar) ? b.conservar : []).map(String));
+      conservar.add(u.usuario);
+      const equipo = this.sql.exec("SELECT usuario FROM usuarios").toArray().map((r) => r.usuario).filter((x) => !conservar.has(x));
+      for (const x of equipo) {
+        this.sql.exec("DELETE FROM usuarios WHERE usuario = ?", x);
+        this.sql.exec("DELETE FROM sesiones WHERE usuario = ?", x);
+      }
+      this.guardar("clavesDebiles", this.leer("clavesDebiles", []).filter((x) => !equipo.includes(x)));
+      let publico = 0;
+      if (b.publico) {
+        publico = this.sql.exec("SELECT COUNT(*) AS n FROM cuentas").one().n;
+        this.sql.exec("DELETE FROM cuentas");
+        this.sql.exec("DELETE FROM sesiones_chat");
+        this.sql.exec("DELETE FROM sanciones WHERE autor LIKE 'c:%'");
+        for (const k of [...this.sanciones.keys()]) if (k.startsWith("c:")) this.sanciones.delete(k);
+      }
+      // Los celus de las cuentas borradas se reconectan sin sesión: vuelven a la pantalla de entrar.
+      for (const ws of this.abiertos("publico")) {
+        const autor = (ws.deserializeAttachment() || {}).autor || "";
+        if ((b.publico && autor.startsWith("c:")) || (esEquipo(autor) && equipo.includes(autor.slice(2)))) {
+          try {
+            ws.send(JSON.stringify({ t: "cuentaBorrada" })); // el celu vuelve en el acto a la pantalla de entrar
+            ws.close(4001, "cuenta borrada");
+          } catch {}
+        }
+      }
+      this.refrescarPaneles(); // los paneles de quienes se borraron se cierran solos
+      return { equipo: equipo.length, publico };
     },
 
     "usuario/borrar"(u, b) {

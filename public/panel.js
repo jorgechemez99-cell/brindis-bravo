@@ -316,6 +316,7 @@
     document.querySelectorAll(".pestanas button").forEach((b) => b.classList.toggle("activa", b.dataset.tab === nombre));
     document.querySelectorAll(".tab").forEach((t) => (t.hidden = t.id !== "tab-" + nombre));
     Comun.guardado("panel.pestana", nombre);
+    if (nombre === "admin" && esAdmin()) contarPublico();
     if (nombre === "pantalla") escalarVista();
   }
   document.querySelectorAll(".pestanas button").forEach((b) => b.addEventListener("click", () => abrirPestana(b.dataset.tab)));
@@ -900,6 +901,7 @@
           )
           .join("") || '<li class="vacio">Todavía no hay programas.</li>';
     }
+    pintarLimpieza();
     if (cambio("adminUsuarios", [S.usuarios, S.programas, S.yo])) {
       const debil = '<span class="chip amarillo" title="Conviene cambiarla antes del show">clave fácil</span>';
       const yoAdmin =
@@ -970,6 +972,45 @@
   $("btnCompartir").hidden = !navigator.share;
   $("btnCompartir").addEventListener("click", () => navigator.share({ text: $("accesoTexto").textContent }).catch(() => {}));
   $("btnCopiarPanel").addEventListener("click", () => copiar(urlPanel()));
+
+  // ---------- limpiar cuentas ----------
+
+  function pintarLimpieza() {
+    if (!esAdmin()) return;
+    if ($("nPublico").textContent === "…") contarPublico();
+    if (!cambio("limpiar", S.usuarios)) return;
+    const previos = new Set([...$("limpiarEquipo").querySelectorAll("input:checked")].map((i) => i.value));
+    $("limpiarEquipo").innerHTML =
+      '<label class="check"><input type="checkbox" checked disabled> admin (siempre)</label>' +
+      S.usuarios
+        .map((u) => `<label class="check"><input type="checkbox" value="${esc(u.usuario)}"${previos.has(u.usuario) ? " checked" : ""}> ${iconoRol(u.rol)} ${esc(u.usuario)}</label>`)
+        .join("");
+  }
+
+  async function contarPublico() {
+    try {
+      const r = await (await fetch("/api/cuentas")).json();
+      $("nPublico").textContent = r.publico === 1 ? "1 cuenta" : `${r.publico} cuentas`;
+    } catch {}
+  }
+
+  $("btnLimpiarCuentas").addEventListener("click", async () => {
+    const quedan = [...$("limpiarEquipo").querySelectorAll("input:checked:not(:disabled)")].map((i) => i.value);
+    const seVan = S.usuarios.map((u) => u.usuario).filter((x) => !quedan.includes(x) && x !== S.yo.usuario);
+    const publico = $("limpiarPublico").checked;
+    if (!seVan.length && !publico) return toast("No hay nada para borrar", true);
+    const texto =
+      "Se van a borrar:\n" +
+      (seVan.length ? `• Del equipo: ${seVan.join(", ")}\n` : "") +
+      (publico ? `• Todas las cuentas del público (${$("nPublico").textContent})\n` : "") +
+      `\nQuedan: admin${quedan.length ? ", " + quedan.join(", ") : ""}.\n\nNo se puede deshacer. ¿Seguro?`;
+    if (!confirm(texto)) return;
+    try {
+      const r = await api("cuentas/limpiar", { conservar: quedan, publico });
+      toast(`Listo: se borraron ${r.equipo} del equipo y ${r.publico} del público`);
+      contarPublico();
+    } catch {}
+  });
 
   // El rol se guarda apenas se toca.
   $("listaUsuarios").addEventListener("change", (ev) => {

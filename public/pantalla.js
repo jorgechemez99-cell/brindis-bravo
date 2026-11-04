@@ -15,6 +15,8 @@
   let encuesta = null;
   let qrHecho = "";
   let turnoDestacado = 0;
+  let turnoEncuesta = 0;
+  let yaAjustada = false; // la primera vez las cajas se ubican sin animar
 
   const ahora = () => Date.now() + desfase;
 
@@ -53,14 +55,17 @@
     ubicar($("ventana"), a.ventana);
     ubicar($("encuesta"), a.encuesta);
     ubicar($("zonaDestacado"), a.destacado);
-    $("ventana").classList.toggle("apagada", !a.ventana.visible);
+    const animar = yaAjustada;
+    yaAjustada = true;
+    mostrarCaja($("ventana"), a.ventana.visible, animar);
     $("tituloTexto").hidden = a.titulo === false;
     $("gente").hidden = a.contador === false;
     $("tituloChat").hidden = a.titulo === false && a.contador === false;
-    $("encuesta").classList.toggle("apagada", !a.encuesta.visible);
-    $("zonaDestacado").classList.toggle("apagada", !a.destacado.visible);
+    mostrarCaja($("encuesta"), a.encuesta.visible, animar);
+    mostrarCaja($("zonaDestacado"), a.destacado.visible, animar);
     const qr = $("qr");
-    qr.hidden = !a.qr.visible;
+    qr.hidden = false;
+    mostrarCaja(qr, a.qr.visible, animar);
     qr.style.left = a.qr.x + "%";
     qr.style.top = a.qr.y + "%";
     qr.style.width = a.qr.tam + "vh";
@@ -72,6 +77,32 @@
     }
     ajustarCajas();
     revisar();
+  }
+
+  // Muestra u oculta una caja con una animación suave.
+  function mostrarCaja(el, ver, animar) {
+    const apagada = el.classList.contains("apagada");
+    clearTimeout(el.tCaja);
+    if (ver) {
+      el.classList.remove("sale-caja");
+      if (apagada) {
+        el.classList.remove("apagada");
+        if (animar) animarEntrada(el);
+      }
+    } else if (!apagada) {
+      if (!animar) return el.classList.add("apagada");
+      el.classList.add("sale-caja");
+      el.tCaja = setTimeout(() => {
+        el.classList.remove("sale-caja");
+        el.classList.add("apagada");
+      }, 400);
+    }
+  }
+
+  function animarEntrada(el) {
+    el.classList.remove("entra-caja");
+    void el.offsetWidth; // reinicia la animación
+    el.classList.add("entra-caja");
   }
 
   function ponerTitulo(p) {
@@ -87,7 +118,8 @@
   function agregar(m, animar = true) {
     if (visibles.some((v) => v.id === m.id) || vencido(m.ts)) return;
     const el = document.createElement("div");
-    el.className = "msj" + (m.prod ? " prod" : m.equipo ? " equipo" : "") + (animar ? "" : " quieto");
+    el.className = "msj" + (m.prod ? " prod" : m.equipo ? " equipo" : "") + (animar ? " entrando" : "");
+    if (animar) el.addEventListener("animationend", () => el.classList.remove("entrando"), { once: true });
     const color = m.prod || m.equipo ? "" : ` style="color:${colorDe(m.nick)}"`;
     el.innerHTML = `${m.equipo ? iconoRol(m.rol) : ""}<span class="nick"${color}>${esc(m.nick)}</span><span class="texto">${esc(m.texto)}</span>`;
     $("lista").appendChild(el);
@@ -97,9 +129,12 @@
 
   function sacar(v) {
     visibles = visibles.filter((x) => x !== v);
-    v.el.classList.remove("quieto");
-    v.el.classList.add("sale");
-    setTimeout(() => v.el.remove(), 500);
+    const el = v.el;
+    el.classList.remove("entrando");
+    el.style.maxHeight = el.offsetHeight + "px"; // desde su alto de ahora hasta cero
+    void el.offsetHeight;
+    el.classList.add("sale");
+    setTimeout(() => el.remove(), 650);
   }
 
   function vaciar() {
@@ -153,11 +188,20 @@
   function ponerEncuesta(e) {
     encuesta = e;
     const el = $("encuesta");
+    const turno = ++turnoEncuesta;
     if (!e) {
-      el.hidden = true;
-      el.querySelector(".dentro").innerHTML = "";
+      if (el.hidden) return;
+      el.classList.add("sale-caja");
+      setTimeout(() => {
+        if (turno !== turnoEncuesta) return;
+        el.hidden = true;
+        el.classList.remove("sale-caja");
+        el.querySelector(".dentro").innerHTML = "";
+      }, 400);
       return;
     }
+    el.classList.remove("sale-caja");
+    if (el.hidden) animarEntrada(el);
     if (e.tipo === "anonima") {
       // Caja anónima: sólo la pregunta y cuántos respondieron (las respuestas las lee el equipo).
       el.querySelector(".dentro").innerHTML =
@@ -229,9 +273,15 @@
       case "programa":
         ponerTitulo(m.programa);
         break;
-      case "gente":
-        $("gente").textContent = "👥 " + m.n;
+      case "gente": {
+        const g = $("gente");
+        if (g.textContent === "👥 " + m.n) break;
+        g.textContent = "👥 " + m.n;
+        g.classList.remove("late");
+        void g.offsetWidth;
+        g.classList.add("late");
         break;
+      }
       case "ajustes":
         if (Date.now() < window.Pantalla.ocupadoHasta) break; // se está editando acá mismo
         aplicarAjustes(m.ajustes);

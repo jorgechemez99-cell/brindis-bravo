@@ -98,7 +98,6 @@ body {
 #lista {
   display: flex;
   flex-direction: column;
-  gap: 0.35em;
 }
 
 .msj {
@@ -109,11 +108,19 @@ body {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   text-shadow: 0 0.05em 0.2em rgb(0 0 0 / 0.95);
-  animation: entra 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  margin-top: 0.35em;
 }
 
-.msj.quieto {
-  animation: none;
+/* Entra: crece desde cero (los otros se corren de a poco), sube un poquito y aparece */
+.msj.entrando {
+  overflow: hidden;
+  animation: entra 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.msj.prod.entrando {
+  animation:
+    entra 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards,
+    brillo 1.4s ease-out 0.2s;
 }
 
 .msj .nick {
@@ -143,14 +150,64 @@ body {
   content: "📢 ";
 }
 
+/* Sale: se desvanece hacia un costado y el espacio se cierra suave */
 .msj.sale {
-  animation: sale 0.5s ease forwards;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-0.5em);
+  max-height: 0 !important;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease,
+    max-height 0.45s ease 0.15s,
+    padding 0.45s ease 0.15s,
+    margin 0.45s ease 0.15s;
 }
 
 @keyframes entra {
   from {
     opacity: 0;
-    transform: translateY(0.8em) scale(0.96);
+    transform: translateY(0.6em) scale(0.98);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+  }
+  45% {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    max-height: 20em;
+  }
+}
+
+@keyframes brillo {
+  0% {
+    box-shadow: 0 0 0 0 rgb(255 210 63 / 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 0.6em rgb(255 210 63 / 0);
+  }
+}
+
+/* Cajas (chat, encuesta, destacado, QR) al aparecer o irse */
+.entra-caja {
+  animation: cajaEntra 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sale-caja {
+  animation: cajaSale 0.4s ease forwards;
+}
+
+@keyframes cajaEntra {
+  from {
+    opacity: 0;
+    transform: translateY(0.8vh) scale(0.97);
   }
   to {
     opacity: 1;
@@ -158,13 +215,21 @@ body {
   }
 }
 
-@keyframes sale {
-  from {
-    opacity: 1;
-  }
+@keyframes cajaSale {
   to {
     opacity: 0;
-    transform: translateX(-0.6em);
+    transform: translateY(0.6vh) scale(0.98);
+  }
+}
+
+/* El contador de gente late cuando cambia */
+#gente.late {
+  animation: late 0.5s ease;
+}
+
+@keyframes late {
+  40% {
+    transform: scale(1.18);
   }
 }
 
@@ -188,7 +253,7 @@ body {
   border: 0.08em solid #ffd23f;
   border-radius: 0.5em;
   box-shadow: 0 0.5em 2em rgb(0 0 0 / 0.6);
-  animation: aparece 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation: aparece 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -245,18 +310,22 @@ body {
 @keyframes aparece {
   from {
     opacity: 0;
-    transform: scale(0.6);
+    transform: translateY(0.25em) scale(0.94);
+    box-shadow: 0 0 0 0 rgb(255 210 63 / 0.6);
+  }
+  60% {
+    opacity: 1;
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: none;
   }
 }
 
 @keyframes desaparece {
   to {
     opacity: 0;
-    transform: scale(0.9);
+    transform: translateY(-0.15em) scale(0.97);
   }
 }
 
@@ -269,7 +338,6 @@ body {
   overflow: hidden;
   border-radius: 1.2vh;
   background: rgb(8 8 14 / max(0.72, var(--fondo-ventana)));
-  animation: entra 0.5s ease both;
 }
 
 #encuesta .dentro {
@@ -577,4 +645,14 @@ body.editando {
 
 .error-ed {
   color: #ff5a5a;
+}
+
+/* Si la compu pide menos movimiento, sin animaciones */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

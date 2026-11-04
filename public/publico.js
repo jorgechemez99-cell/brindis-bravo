@@ -895,6 +895,11 @@
       case "respuestaOk":
         alRespuestaOk(m);
         break;
+      case "cuentaBorrada":
+        // La producción limpió las cuentas: hay que volver a crear la cuenta.
+        guardado("chat.cuenta", null);
+        mostrarAcceso();
+        break;
       case "tuRespuesta":
         // Sólo le llega a quien la escribió: nadie más sabe que es suya.
         estadoEnvio("⭐ ¡Destacaron tu respuesta anónima en la pantalla!", "", 7000);
