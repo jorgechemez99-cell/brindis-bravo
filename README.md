@@ -75,6 +75,7 @@ Todo se hace desde el navegador, sin terminal.
 1. Abrí `/panel` (por ejemplo <https://brindis-bravo.brindis-bravo.workers.dev/panel>). La primera vez aparece **¡Primera vez!**: el usuario es `admin`; elegís la clave, la repetís y tocás **Guardar y entrar**. Esta pantalla aparece una sola vez. También se crean **Programa 1, 2 y 3**, que después se renombran o borran.
 2. Pestaña **Equipo → Agregar a alguien del equipo**: usuario, clave y rol. Al tocar **Agregar** aparece un cuadrito con el link, el usuario y la clave para **Copiar** o **Compartir…** por WhatsApp.
 3. Cada uno cambia su clave con **Mi clave** (arriba a la derecha). Si una clave es fácil de adivinar, el panel lo avisa en amarillo hasta que se cambie.
+4. **🧹 Limpiar cuentas** (sólo admin, en **Equipo**): para empezar de cero después de las pruebas. Se tildan las cuentas del equipo que quedan (el admin principal queda siempre) y, si se quiere, se borran todas las del público. Pide confirmación. Los mensajes quedan en el historial, y los celus de las cuentas borradas vuelven solos a la pantalla de entrar. No hay límite de cuentas: cada una ocupa muy poco y cuesta unas 6 escrituras al crearse.
 
 **Roles del equipo**: 🎬 **Productor**, 🎙️ **Conductor** y 👑 **Admin** (ver [Quién ve qué](#quién-ve-qué)). El rol de cada uno se cambia ahí mismo, en **Quiénes entran al panel**, y se guarda solo.
 
@@ -129,6 +130,8 @@ Se puede hacer **directo sobre la pantalla real** con la app (**✏️ Editar**,
 - **Dirección que abre el QR**: si se deja vacía, el QR lleva a este mismo sitio. El QR para imprimir está en la pestaña **QR**.
 
 Todo se aplica en vivo.
+
+Todo entra y sale con animaciones suaves: los mensajes se deslizan y el resto se corre de a poco, el destacado aparece con una subida suave, la encuesta y el QR entran y se van con un deslizamiento corto (también al prenderlos o apagarlos), y el contador de gente late cuando cambia. Si la compu tiene activado "reducir movimiento", no se anima nada.
 
 ## La app de escritorio
 
