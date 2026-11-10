@@ -18,10 +18,12 @@
     return servidor().replace(/^http/, "ws") + "/ws?" + consulta;
   }
 
-  function colorDe(nick) {
+  // Colores de apodo para fondos claros (la estética crema del evento): tintas que se leen bien.
+  const TINTAS = ["#5d7a00", "#c45f12", "#2f6f9f", "#a8324f", "#6d4ba0", "#1f7a6e", "#8a5a2b", "#b0428a"];
+  function tintaDe(nick) {
     let h = 7;
     for (const c of String(nick)) h = (h * 31 + c.codePointAt(0)) >>> 0;
-    return `hsl(${h % 360} 90% 72%)`;
+    return TINTAS[h % TINTAS.length];
   }
 
   // Ícono de cada rol del equipo, al lado del apodo (en la pantalla, el chat y el panel).
@@ -201,5 +203,5 @@
     }
   }
 
-  window.Comun = { Conexion, idAleatorio, servidor, urlWs, colorDe, esc, largo, guardado, svgQR, iconoRol, ROLES };
+  window.Comun = { Conexion, idAleatorio, servidor, urlWs, tintaDe, esc, largo, guardado, svgQR, iconoRol, ROLES };
 })();

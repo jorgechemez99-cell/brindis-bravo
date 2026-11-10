@@ -1,14 +1,19 @@
 :root {
-  --fondo: #101016;
-  --tarjeta: #1b1b24;
-  --borde: #2c2c3a;
-  --texto: #f4f4f8;
-  --suave: #a3a3b5;
-  --acento: #ff3d7f;
-  --acento2: #ffb13d;
-  --ok: #2ee59d;
-  --rojo: #ff4b4b;
-  color-scheme: dark;
+  --fondo: #f8efe8;
+  --tarjeta: #fffaf5;
+  --borde: #dccdc0;
+  --texto: #2e2e2e;
+  --suave: #7a6c61;
+  --acento: #86a80c;
+  --acento2: #c45f12;
+  --ok: #5d7a00;
+  --rojo: #b3261e;
+  --tinta: #2e2e2e;
+  --verde: #86a80c;
+  --naranja: #f99a45;
+  --mano: 16px 7px 14px 8px / 8px 15px 7px 16px;
+  --sombra: 3px 3px 0 var(--tinta);
+  color-scheme: light;
 }
 
 * {
@@ -47,7 +52,7 @@ select,
 textarea {
   font: inherit;
   color: var(--texto);
-  background: #0c0c11;
+  background: #ffffff;
   border: 1px solid var(--borde);
   border-radius: 10px;
   padding: 9px 11px;
@@ -77,11 +82,12 @@ label > select {
 .boton {
   font: inherit;
   font-weight: 700;
-  color: #fff;
-  border: 0;
-  border-radius: 10px;
-  padding: 10px 18px;
-  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+  color: var(--tinta);
+  border: 2px solid var(--tinta);
+  border-radius: var(--mano);
+  padding: 9px 17px;
+  background: var(--verde);
+  box-shadow: var(--sombra);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -92,16 +98,16 @@ label > select {
 }
 
 .boton.secundario {
-  background: #2a2a38;
+  background: #f1e6dc;
 }
 
 .boton.ok {
-  background: #179e6a;
+  background: var(--naranja);
 }
 
 .boton.peligro {
-  background: #4a1f24;
-  color: #ffb3b3;
+  background: #f7d9d6;
+  color: #9c2b2b;
 }
 
 .boton:disabled {
@@ -131,7 +137,7 @@ label > select {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #2a2a38;
+  background: #efe3d8;
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
@@ -143,12 +149,12 @@ label > select {
 }
 
 .chip.verde {
-  background: #134d37;
+  background: #e6efc4;
   color: var(--ok);
 }
 
 .chip.amarillo {
-  background: #4d3a13;
+  background: #fde3c8;
   color: var(--acento2);
 }
 
@@ -162,9 +168,9 @@ label > select {
   margin: 12px 16px 0;
   padding: 10px 14px;
   border-radius: 10px;
-  background: #2a2214;
-  border: 1px solid #5a4520;
-  color: #ffd690;
+  background: #fff1dc;
+  border: 2px solid var(--naranja);
+  color: #6e3b08;
 }
 
 .error {
@@ -175,15 +181,10 @@ label > select {
 /* ---------- login ---------- */
 
 .marca-login {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  background: linear-gradient(90deg, var(--acento), var(--acento2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin-bottom: 6px;
+  display: block;
+  height: 24px;
+  width: auto;
+  margin-bottom: 12px;
 }
 
 .login {
@@ -212,7 +213,7 @@ label > select {
   align-items: center;
   gap: 10px 18px;
   padding: 10px 16px;
-  background: rgb(16 16 22 / 0.95);
+  background: rgb(248 239 232 / 0.95);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--borde);
 }
@@ -269,7 +270,7 @@ label > select {
   width: 42px;
   height: 24px;
   border-radius: 999px;
-  background: #2a2a38;
+  background: #d6c7b9;
   border: 0;
   padding: 0;
   position: relative;
@@ -353,7 +354,7 @@ main {
 /* ---------- chat ---------- */
 
 .destacado {
-  border-color: #ffd23f;
+  border-color: var(--naranja);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -418,8 +419,8 @@ main {
 }
 
 .item.prod {
-  border-color: #6a5310;
-  background: #241f10;
+  border-color: #b9cc78;
+  background: #f1f5df;
 }
 
 .item.borrado,
@@ -512,14 +513,14 @@ body.sin-control #cajaDestacado button {
   padding: 6px 10px;
   margin: 4px 0;
   border-radius: 8px;
-  background: #0c0c11;
+  background: #ffffff;
   overflow: hidden;
 }
 
 .enc .opc .barra {
   position: absolute;
   inset: 0 auto 0 0;
-  background: linear-gradient(90deg, rgb(255 61 127 / 0.4), rgb(255 177 61 / 0.4));
+  background: rgb(134 168 12 / 0.4);
   transition: width 0.4s;
 }
 
@@ -841,7 +842,7 @@ label.rol {
 
 label.rol:has(input:checked) {
   border-color: var(--acento);
-  background: rgb(255 61 127 / 0.08);
+  background: rgb(134 168 12 / 0.12);
 }
 
 label.rol input {
@@ -864,8 +865,8 @@ label.rol b {
   margin-top: 16px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #13261f;
-  border: 1px solid #1f5a42;
+  background: #eef4d8;
+  border: 1px solid #b9cc78;
 }
 
 .acceso p {
@@ -895,7 +896,7 @@ label.rol b {
 }
 
 .dialogo::backdrop {
-  background: rgb(0 0 0 / 0.6);
+  background: rgb(46 46 46 / 0.45);
 }
 
 .dialogo .fila-botones {
@@ -944,15 +945,15 @@ label.rol b {
   max-width: calc(100vw - 32px);
   padding: 12px 18px;
   border-radius: 12px;
-  background: #2a2a38;
-  color: var(--texto);
+  background: var(--tinta);
+  color: #f8efe8;
   font-weight: 700;
-  box-shadow: 0 8px 30px rgb(0 0 0 / 0.5);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.25);
 }
 
 .toast.malo {
-  background: #5a1f24;
-  color: #ffd0d0;
+  background: var(--rojo);
+  color: #fff;
 }
 
 @media print {
@@ -982,4 +983,73 @@ label.rol b {
   #qrGrande svg {
     width: 70%;
   }
+}
+
+/* ---------- estética del evento (flyer de Brindis Bravo) ---------- */
+
+body {
+  font-family: "Baloo 2", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 500;
+}
+
+h1,
+h2 {
+  font-weight: 800;
+}
+
+.tarjeta {
+  border: 2px solid var(--tinta);
+  border-radius: var(--mano);
+  box-shadow: var(--sombra);
+}
+
+.barra {
+  border-bottom: 2px solid var(--tinta);
+}
+
+.boton:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--tinta);
+}
+
+.boton.peligro {
+  border-color: #9c2b2b;
+  box-shadow: 3px 3px 0 #9c2b2b;
+}
+
+.chip,
+.qr-url,
+.hora {
+  font-family: "DM Mono", ui-monospace, Menlo, monospace;
+  font-weight: 500;
+}
+
+.toast {
+  border-radius: var(--mano);
+}
+
+/* El QR para imprimir: letrero del evento arriba, el sillón y el QR con marco de marcador */
+.qr-imprimible .marca-login {
+  height: auto;
+  width: min(240px, 70%);
+  margin: 4px auto 6px;
+}
+
+.qr-imprimible h2 {
+  font-size: 24px;
+  margin-bottom: 14px;
+}
+
+#qrGrande svg {
+  border: 3px solid var(--tinta);
+  border-radius: 14px;
+  padding: 10px;
+  background: #fff;
+  box-shadow: 5px 5px 0 var(--tinta);
+}
+
+.qr-imprimible .ilustracion {
+  display: block;
+  width: min(180px, 50%);
+  margin: 14px auto 0;
 }

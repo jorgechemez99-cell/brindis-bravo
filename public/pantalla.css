@@ -1,4 +1,6 @@
-/* Capa del chat que va encima de lo que se proyecta. Fondo transparente. */
+/* Capa del chat que va encima de lo que se proyecta. Fondo transparente.
+   Estética del flyer de Brindis Bravo: crema, tinta de marcador, verde oliva y naranja;
+   cajas como stickers (borde de marcador, esquinas apenas irregulares y sombra corrida). */
 :root {
   --opacidad: 1;
   --fondo-ventana: 0.3;
@@ -6,6 +8,18 @@
   --letra: 30;
   /* 1 unidad = 1 píxel de una pantalla de 1080 de alto, en cualquier resolución */
   --u: calc(100vh / 1080);
+
+  --crema: 248 239 232;
+  --papel: 255 250 245;
+  --tinta: #2e2e2e;
+  --verde: #86a80c;
+  --naranja: #f99a45;
+  --celeste: #7cc4e4;
+  /* esquinas de "dibujado a mano": cada una un poco distinta */
+  --mano: 0.85em 0.35em 0.75em 0.4em / 0.4em 0.8em 0.35em 0.85em;
+  --sombra: 0.09em 0.11em 0 var(--tinta);
+  --redonda: "Baloo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "DM Mono", ui-monospace, Menlo, monospace;
 }
 
 html,
@@ -17,8 +31,8 @@ body {
 }
 
 body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  color: #fff;
+  font-family: var(--redonda);
+  color: var(--tinta);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -43,46 +57,68 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 0.45em;
-  border-radius: 0.6em;
-  background: rgb(8 8 14 / var(--fondo-ventana));
+  padding: 0.45em 0.5em 0.55em;
+  border-radius: 0.9em 0.5em 0.85em 0.55em / 0.55em 0.9em 0.5em 0.85em;
+  background: rgb(var(--crema) / var(--fondo-ventana));
 }
 
-/* "BRINDIS BRAVO · programa" arriba de la ventana */
+/* Título: el letrero del evento, el programa en una etiqueta verde y el contador */
 #tituloChat {
   flex: none;
   display: flex;
-  gap: 0.6em;
-  padding: 0.05em 0.25em 0.35em;
-  font-size: 0.78em;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0 0.05em 0.35em;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 0 0.05em 0.25em rgb(0 0 0 / 0.95);
-}
-
-#tituloChat .marca {
-  color: #ff3d7f;
-}
-
-#tituloChat .prog {
-  color: #fff;
 }
 
 #tituloTexto {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  min-width: 0;
+}
+
+#tituloChat .logo {
+  display: block;
+  flex: none;
+  height: 1.15em;
+  padding: 0.18em 0.35em;
+  background: rgb(var(--crema));
+  border: 0.07em solid var(--tinta);
+  border-radius: var(--mano);
+  box-shadow: var(--sombra);
+}
+
+#tituloChat .prog {
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 0.12em 0.5em 0;
+  font-size: 0.72em;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: var(--verde);
+  border: 0.08em solid var(--tinta);
+  border-radius: var(--mano);
+  box-shadow: var(--sombra);
 }
 
 /* cuánta gente está en el chat */
 #gente {
   margin-left: auto;
   flex: none;
-  color: #fff;
-  letter-spacing: 0;
+  padding: 0.15em 0.5em;
+  font-family: var(--mono);
+  font-size: 0.62em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  background: rgb(var(--crema));
+  border: 0.1em solid var(--tinta);
+  border-radius: var(--mano);
+  box-shadow: var(--sombra);
 }
 
 /* Los mensajes se apilan desde abajo; si no entran, se cortan los más viejos (arriba). */
@@ -93,6 +129,7 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
+  padding: 0 0.15em 0.15em 0; /* lugar para la sombra de los globos */
 }
 
 #lista {
@@ -100,15 +137,17 @@ body {
   flex-direction: column;
 }
 
+/* Cada mensaje es un sticker crema con borde de marcador */
 .msj {
-  background: rgb(0 0 0 / var(--fondo-globo));
-  border-radius: 0.55em;
-  padding: 0.32em 0.6em 0.38em;
-  line-height: 1.22;
+  background: rgb(var(--papel) / max(0.82, var(--fondo-globo)));
+  border: 0.07em solid var(--tinta);
+  border-radius: var(--mano);
+  box-shadow: var(--sombra);
+  padding: 0.28em 0.6em 0.3em;
+  line-height: 1.2;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  text-shadow: 0 0.05em 0.2em rgb(0 0 0 / 0.95);
-  margin-top: 0.35em;
+  margin-top: 0.4em;
 }
 
 /* Entra: crece desde cero (los otros se corren de a poco), sube un poquito y aparece */
@@ -125,25 +164,28 @@ body {
 
 .msj .nick {
   font-weight: 800;
-  margin-right: 0.4em;
+  margin-right: 0.35em;
 }
 
 .msj .texto {
   font-weight: 600;
 }
 
+.msj.equipo {
+  background: rgb(255 236 214 / max(0.85, var(--fondo-globo)));
+}
+
 .msj.equipo .nick {
-  color: #ffb13d;
+  color: #c45f12;
 }
 
 .msj .icono-rol {
-  margin-right: 0.3em;
+  margin-right: 0.25em;
 }
 
+/* Aviso de la producción: sticker verde */
 .msj.prod {
-  background: rgb(255 196 40 / max(0.75, var(--fondo-globo)));
-  color: #141414;
-  text-shadow: none;
+  background: var(--verde);
 }
 
 .msj.prod .nick::before {
@@ -159,18 +201,20 @@ body {
   padding-top: 0;
   padding-bottom: 0;
   margin-top: 0;
+  border-width: 0;
   transition:
     opacity 0.35s ease,
     transform 0.35s ease,
     max-height 0.45s ease 0.15s,
     padding 0.45s ease 0.15s,
-    margin 0.45s ease 0.15s;
+    margin 0.45s ease 0.15s,
+    border-width 0.45s ease 0.15s;
 }
 
 @keyframes entra {
   from {
     opacity: 0;
-    transform: translateY(0.6em) scale(0.98);
+    transform: translateY(0.6em) rotate(-0.6deg) scale(0.98);
     max-height: 0;
     padding-top: 0;
     padding-bottom: 0;
@@ -188,10 +232,10 @@ body {
 
 @keyframes brillo {
   0% {
-    box-shadow: 0 0 0 0 rgb(255 210 63 / 0.7);
+    box-shadow: var(--sombra), 0 0 0 0 rgb(134 168 12 / 0.7);
   }
   100% {
-    box-shadow: 0 0 0 0.6em rgb(255 210 63 / 0);
+    box-shadow: var(--sombra), 0 0 0 0.6em rgb(134 168 12 / 0);
   }
 }
 
@@ -245,62 +289,92 @@ body {
 }
 
 #destacado {
+  position: relative;
   box-sizing: border-box;
   max-width: 100%;
-  padding: 0.6em 1em 0.7em;
+  padding: 0.55em 1em 0.6em;
   text-align: center;
-  background: rgb(10 10 16 / max(0.82, var(--fondo-globo)));
-  border: 0.08em solid #ffd23f;
-  border-radius: 0.5em;
-  box-shadow: 0 0.5em 2em rgb(0 0 0 / 0.6);
+  background: rgb(var(--papel));
+  border: 0.07em solid var(--tinta);
+  border-radius: var(--mano);
+  box-shadow: 0.1em 0.12em 0 var(--tinta);
   animation: aparece 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
+/* Un dibujito del evento asomando en la esquina */
+#destacado::before {
+  content: "";
+  position: absolute;
+  left: -0.55em;
+  top: -0.75em;
+  width: 2.1em;
+  height: 1.2em;
+  background: url("marca/sillon.png") center / contain no-repeat;
+  transform: rotate(-8deg);
+}
+
 #destacado .nick {
   display: block;
-  font-size: 0.55em;
+  font-size: 0.5em;
   font-weight: 800;
-  margin-bottom: 0.3em;
+  margin-bottom: 0.2em;
 }
 
 #destacado .texto {
   display: block;
   font-weight: 800;
-  line-height: 1.15;
-  text-shadow: 0 0.04em 0.2em rgb(0 0 0 / 0.9);
+  line-height: 1.1;
 }
 
+/* Aviso de la producción: tarjeta verde con el trago */
 #destacado.prod {
-  background: rgb(255 196 40 / 0.95);
-  color: #141414;
-  border-color: #fff;
+  background: var(--verde);
 }
 
-#destacado.prod .texto {
-  text-shadow: none;
+#destacado.prod::before {
+  left: auto;
+  right: -0.45em;
+  top: -0.9em;
+  width: 1.2em;
+  height: 1.4em;
+  background-image: url("marca/trago.png");
+  transform: rotate(8deg);
 }
 
-/* Respuesta de la caja anónima destacada */
+/* Respuesta de la caja anónima: tarjeta naranja con el sifón */
 #destacado.anonima {
-  border-color: #6cc8ff;
+  background: var(--naranja);
+}
+
+#destacado.anonima::before {
+  left: -0.5em;
+  top: -1em;
+  width: 0.75em;
+  height: 1.8em;
+  background-image: url("marca/sifon.png");
+  transform: rotate(-10deg);
 }
 
 #destacado .contexto {
   display: block;
-  font-size: 0.5em;
-  font-weight: 800;
-  color: #6cc8ff;
-  margin-bottom: 0.35em;
+  font-family: var(--mono);
+  font-size: 0.36em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.45em;
 }
 
 #destacado .firma {
   display: block;
-  font-size: 0.45em;
-  font-weight: 700;
-  opacity: 0.75;
-  margin-top: 0.35em;
+  font-family: var(--mono);
+  font-size: 0.34em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 0.45em;
 }
 
 #destacado.sale {
@@ -310,8 +384,7 @@ body {
 @keyframes aparece {
   from {
     opacity: 0;
-    transform: translateY(0.25em) scale(0.94);
-    box-shadow: 0 0 0 0 rgb(255 210 63 / 0.6);
+    transform: translateY(0.25em) rotate(-1.5deg) scale(0.94);
   }
   60% {
     opacity: 1;
@@ -336,21 +409,22 @@ body {
   position: absolute;
   box-sizing: border-box;
   overflow: hidden;
-  border-radius: 1.2vh;
-  background: rgb(8 8 14 / max(0.72, var(--fondo-ventana)));
+  background: rgb(var(--papel) / max(0.92, var(--fondo-ventana)));
+  border: 0.35vh solid var(--tinta);
+  border-radius: 2.4vh 1vh 2.1vh 1.2vh / 1.2vh 2.3vh 1vh 2.4vh;
+  box-shadow: 0.45vh 0.55vh 0 var(--tinta);
 }
 
 #encuesta .dentro {
-  padding: 0.6em 0.8em 0.5em;
+  padding: 0.55em 0.8em 0.5em;
   overflow-wrap: anywhere;
 }
 
 #encuesta .preg {
   font-weight: 800;
   font-size: 1.15em;
-  line-height: 1.15;
-  margin-bottom: 0.45em;
-  text-shadow: 0 0.05em 0.2em rgb(0 0 0 / 0.9);
+  line-height: 1.1;
+  margin-bottom: 0.4em;
 }
 
 .opc {
@@ -358,11 +432,12 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 0.6em;
-  margin: 0.32em 0;
-  padding: 0.3em 0.55em;
-  border-radius: 0.4em;
+  margin: 0.34em 0;
+  padding: 0.22em 0.55em 0.18em;
+  border: 0.07em solid var(--tinta);
+  border-radius: var(--mano);
   overflow: hidden;
-  background: rgb(255 255 255 / 0.1);
+  background: rgb(var(--crema));
   font-weight: 700;
 }
 
@@ -370,33 +445,36 @@ body {
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background: linear-gradient(90deg, #ff3d7f, #ffb13d);
+  background: var(--verde);
   transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .opc.gana .barra {
-  background: linear-gradient(90deg, #19d38c, #b6ff3d);
+  background: var(--naranja);
 }
 
 .opc span {
   position: relative;
-  text-shadow: 0 0.05em 0.2em rgb(0 0 0 / 0.9);
 }
 
 .opc .pct {
   flex: none;
   min-width: 2.6em;
   text-align: right;
+  font-family: var(--mono);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
 #encuesta .pie {
   display: flex;
   justify-content: space-between;
-  margin-top: 0.4em;
-  font-size: 0.72em;
-  font-weight: 700;
-  opacity: 0.9;
+  margin-top: 0.45em;
+  font-family: var(--mono);
+  font-size: 0.6em;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 /* Caja anónima: la invitación y el contador, uno abajo del otro */
@@ -413,13 +491,31 @@ body {
 #qr {
   position: absolute;
   box-sizing: border-box;
-  padding: 0.45em 0.45em 0.35em;
-  border-radius: 0.5em;
-  background: #fff;
-  color: #111;
+  padding: 0.5em 0.5em 0.3em;
+  background: rgb(var(--crema));
+  color: var(--tinta);
   text-align: center;
-  font-weight: 800;
-  box-shadow: 0 0.3em 1.2em rgb(0 0 0 / 0.4);
+  border: 0.12em solid var(--tinta);
+  border-radius: 0.9em 0.45em 0.8em 0.5em / 0.5em 0.85em 0.45em 0.9em;
+  box-shadow: 0.14em 0.17em 0 var(--tinta);
+}
+
+/* el BB del evento, como un sticker pegado en la esquina */
+#qr::before {
+  content: "";
+  position: absolute;
+  left: -1.1em;
+  top: -1.2em;
+  width: 2.6em;
+  height: 2.2em;
+  background: url("marca/bb.png") center / contain no-repeat;
+  transform: rotate(-10deg);
+}
+
+#qrImg {
+  padding: 0.35em;
+  background: #fff;
+  border-radius: 0.35em;
 }
 
 #qrImg svg {
@@ -429,8 +525,11 @@ body {
 }
 
 #qrTexto {
-  margin-top: 0.15em;
+  margin-top: 0.25em;
+  font-weight: 800;
   line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 /* Puntito rojo discreto si la pantalla perdió la conexión hace rato. */

@@ -3,7 +3,7 @@
 // o como vista previa en el panel (?vista=1).
 (function () {
   "use strict";
-  const { Conexion, urlWs, servidor, colorDe, esc, svgQR, iconoRol } = window.Comun;
+  const { Conexion, urlWs, servidor, tintaDe, esc, svgQR, iconoRol } = window.Comun;
   const vista = new URLSearchParams(location.search).get("vista") === "1";
   const $ = (id) => document.getElementById(id);
   const raiz = document.documentElement;
@@ -106,7 +106,7 @@
   }
 
   function ponerTitulo(p) {
-    $("tituloTexto").innerHTML = '<span class="marca">Brindis Bravo</span>' + (p ? `<span class="prog"> · ${esc(p.nombre)}</span>` : "");
+    $("tituloTexto").innerHTML = '<img class="logo" src="marca/brindis-bravo-linea.png" alt="Brindis Bravo">' + (p ? `<span class="prog">${esc(p.nombre)}</span>` : "");
   }
 
   // ---------- mensajes ----------
@@ -120,7 +120,7 @@
     const el = document.createElement("div");
     el.className = "msj" + (m.prod ? " prod" : m.equipo ? " equipo" : "") + (animar ? " entrando" : "");
     if (animar) el.addEventListener("animationend", () => el.classList.remove("entrando"), { once: true });
-    const color = m.prod || m.equipo ? "" : ` style="color:${colorDe(m.nick)}"`;
+    const color = m.prod || m.equipo ? "" : ` style="color:${tintaDe(m.nick)}"`;
     el.innerHTML = `${m.equipo ? iconoRol(m.rol) : ""}<span class="nick"${color}>${esc(m.nick)}</span><span class="texto">${esc(m.texto)}</span>`;
     $("lista").appendChild(el);
     visibles.push({ id: m.id, ts: m.ts, el });
@@ -173,7 +173,7 @@
       el.innerHTML = `<span class="contexto">📮 ${esc(d.pregunta || "Caja anónima")}</span><span class="texto">${esc(d.texto)}</span><span class="firma">— Anónimo</span>`;
     } else {
       el.className = d.prod ? "prod" : "";
-      const color = d.prod ? "" : ` style="color:${colorDe(d.nick)}"`;
+      const color = d.prod ? "" : ` style="color:${tintaDe(d.nick)}"`;
       el.innerHTML = `<span class="nick"${color}>${esc(d.nick)}</span><span class="texto">${esc(d.texto)}</span>`;
     }
     el.hidden = false;
@@ -317,5 +317,6 @@
 
   new Conexion(urlWs("rol=pantalla" + (vista ? "&vista=1" : "")), { alRecibir, alCambiarEstado });
   setInterval(revisar, 1000);
+  if (document.fonts) document.fonts.ready.then(ajustarCajas); // las letras del evento cambian las medidas
   window.addEventListener("resize", ajustarCajas);
 })();

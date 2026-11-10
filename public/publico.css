@@ -1,14 +1,14 @@
 :root {
-  --fondo: #101016;
-  --tarjeta: #1b1b24;
-  --borde: #2c2c3a;
-  --texto: #f4f4f8;
-  --suave: #a3a3b5;
-  --acento: #ff3d7f;
-  --acento2: #ffb13d;
-  --ok: #2ee59d;
-  --error: #ff5a5a;
-  color-scheme: dark;
+  --fondo: #f8efe8;
+  --tarjeta: #fffaf5;
+  --borde: #dccdc0;
+  --texto: #2e2e2e;
+  --suave: #7a6c61;
+  --acento: #86a80c;
+  --acento2: #c45f12;
+  --ok: #5d7a00;
+  --error: #b3261e;
+  color-scheme: light;
 }
 
 * {
@@ -41,7 +41,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
-  background: rgb(16 16 22 / 0.95);
+  background: rgb(248 239 232 / 0.96);
   border-bottom: 1px solid var(--borde);
 }
 
@@ -64,7 +64,7 @@ body {
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: linear-gradient(90deg, var(--acento), var(--acento2));
+  background: var(--texto);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -168,7 +168,7 @@ textarea {
   font: inherit;
   font-size: 18px;
   color: var(--texto);
-  background: #0c0c11;
+  background: #ffffff;
   border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 12px 14px;
@@ -184,11 +184,11 @@ textarea:focus {
   font: inherit;
   font-weight: 800;
   font-size: 17px;
-  color: #fff;
+  color: var(--texto);
   border: 0;
   border-radius: 12px;
   padding: 13px 22px;
-  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+  background: var(--acento);
   cursor: pointer;
 }
 
@@ -253,18 +253,18 @@ textarea:focus {
 .aviso {
   flex: none;
   margin: 10px 12px 0;
-  background: #2a2214;
-  border: 1px solid #5a4520;
-  color: #ffd690;
+  background: #fff1d2;
+  border: 1px solid #e2b85a;
+  color: #6e4a00;
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 15px;
 }
 
 .aviso.fugaz {
-  background: #2a1620;
-  border-color: #5a2a3d;
-  color: #ffb0c8;
+  background: #fbe1df;
+  border-color: #2e2e2e;
+  color: #9c2b2b;
 }
 
 .feed {
@@ -306,11 +306,11 @@ textarea:focus {
 }
 
 #lista .propio {
-  background: rgb(255 61 127 / 0.1);
+  background: rgb(249 154 69 / 0.16);
 }
 
 #lista .prod {
-  background: rgb(255 196 40 / 0.16);
+  background: rgb(134 168 12 / 0.2);
 }
 
 #lista .prod .nick {
@@ -335,8 +335,8 @@ textarea:focus {
   font: inherit;
   font-size: 15px;
   line-height: 1;
-  color: #ffb3b3;
-  background: #4a1f24;
+  color: #9c2b2b;
+  background: #f7d9d6;
   border: 0;
   border-radius: 50%;
   cursor: pointer;
@@ -364,17 +364,17 @@ body.conductor #lista li[data-id] {
 
 body.moderador #lista li[data-id]:active,
 body.conductor #lista li[data-id]:active {
-  background: rgb(255 255 255 / 0.06);
+  background: rgb(46 46 46 / 0.06);
 }
 
 /* El mensaje que está destacado en la pantalla (vista del equipo) */
 #lista li.es-destacado {
-  box-shadow: inset 3px 0 0 #ffd23f;
+  box-shadow: inset 3px 0 0 #c45f12;
 }
 
 #lista li.es-destacado .nick::after {
   content: " ★";
-  color: #ffd23f;
+  color: #c45f12;
 }
 
 /* ---------- vista del público: sin chat; destacado un rato y encuestas ---------- */
@@ -412,15 +412,15 @@ body.conductor #lista li[data-id]:active {
 .destacado-publico {
   padding: 14px 16px;
   border-radius: 16px;
-  border: 1px solid #6b5a16;
-  background: linear-gradient(180deg, #2b2610, #1e1c12);
+  border: 1px solid #2e2e2e;
+  background: var(--tarjeta);
   overflow-wrap: anywhere;
   animation: aparece 0.4s ease;
 }
 
 .destacado-publico.mio {
-  border-color: #ffd23f;
-  box-shadow: 0 0 24px rgb(255 210 63 / 0.25);
+  border-color: #c45f12;
+  box-shadow: 0 0 24px rgb(249 154 69 / 0.35);
 }
 
 .destacado-publico .etiqueta-dest {
@@ -429,7 +429,7 @@ body.conductor #lista li[data-id]:active {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #ffd23f;
+  color: #c45f12;
   margin-bottom: 4px;
 }
 
@@ -441,7 +441,7 @@ body.conductor #lista li[data-id]:active {
 /* 📢 aviso de la producción */
 .destacado-publico.aviso-prod {
   border-color: var(--acento2);
-  background: linear-gradient(180deg, #3a2c0c, #221c0e);
+  background: #e3edbd;
 }
 
 .destacado-publico.aviso-prod .etiqueta-dest {
@@ -471,18 +471,18 @@ body.conductor #lista li[data-id]:active {
   padding: 8px 12px;
   border-radius: 10px;
   font-size: 15px;
-  background: #13261f;
+  background: #eef5d6;
   color: var(--ok);
 }
 
 .estado-envio.espera {
-  background: #2a2214;
-  color: #ffd690;
+  background: #fff1d2;
+  color: #6e4a00;
 }
 
 .estado-envio.malo {
-  background: #2a1620;
-  color: #ffb0c8;
+  background: #fbe1df;
+  color: #9c2b2b;
 }
 
 .nuevos {
@@ -493,12 +493,12 @@ body.conductor #lista li[data-id]:active {
   font: inherit;
   font-size: 14px;
   font-weight: 800;
-  color: #fff;
+  color: var(--texto);
   border: 0;
   border-radius: 999px;
   padding: 8px 16px;
   background: var(--acento);
-  box-shadow: 0 6px 20px rgb(0 0 0 / 0.5);
+  box-shadow: 0 6px 20px rgb(46 46 46 / 0.2);
   cursor: pointer;
 }
 
@@ -516,11 +516,11 @@ body.conductor #lista li[data-id]:active {
   font: inherit;
   font-size: 15px;
   font-weight: 800;
-  color: #fff;
+  color: var(--texto);
   border: 0;
   border-radius: 999px;
   padding: 8px 14px;
-  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+  background: var(--acento);
   cursor: pointer;
   white-space: nowrap;
   flex: none;
@@ -560,7 +560,7 @@ body.conductor #lista li[data-id]:active {
   font-size: 20px;
   border: 1px solid var(--borde);
   border-radius: 12px;
-  background: #1b1b24;
+  background: #fffaf5;
   cursor: pointer;
   filter: grayscale(1);
   opacity: 0.7;
@@ -569,13 +569,13 @@ body.conductor #lista li[data-id]:active {
 .prod-toggle.activo {
   filter: none;
   opacity: 1;
-  background: #4d3a13;
+  background: #e8f0cc;
   border-color: var(--acento2);
 }
 
 .redactar.modo-prod textarea {
   border-color: var(--acento2);
-  background: #1e1a0e;
+  background: #f5f9e6;
 }
 
 .enviar {
@@ -606,9 +606,9 @@ body.conductor #lista li[data-id]:active {
   flex: none;
   margin: 10px 12px 0;
   padding: 10px 14px;
-  border: 1px solid #5a2a3d;
+  border: 1px solid #2e2e2e;
   border-radius: 14px;
-  background: linear-gradient(180deg, #24161e, var(--tarjeta));
+  background: var(--tarjeta);
   max-height: 55%;
   overflow-y: auto;
 }
@@ -654,7 +654,7 @@ body.conductor #lista li[data-id]:active {
   font-weight: 700;
   text-align: left;
   color: var(--texto);
-  background: #0c0c11;
+  background: #ffffff;
   border: 1px solid var(--borde);
   border-radius: 12px;
   cursor: pointer;
@@ -672,7 +672,7 @@ body.conductor #lista li[data-id]:active {
 .opcion .barra {
   position: absolute;
   inset: 0 auto 0 0;
-  background: linear-gradient(90deg, rgb(255 61 127 / 0.45), rgb(255 177 61 / 0.45));
+  background: rgb(134 168 12 / 0.45);
   transition: width 0.5s;
 }
 
@@ -698,7 +698,7 @@ body.conductor #lista li[data-id]:active {
 }
 
 .hoja::backdrop {
-  background: rgb(0 0 0 / 0.6);
+  background: rgb(46 46 46 / 0.45);
 }
 
 .hoja-msj {
@@ -717,7 +717,7 @@ body.conductor #lista li[data-id]:active {
   font-weight: 700;
   text-align: center;
   color: var(--texto);
-  background: #262632;
+  background: #f1e6dc;
   border: 0;
   border-radius: 12px;
   padding: 13px;
@@ -726,8 +726,8 @@ body.conductor #lista li[data-id]:active {
 }
 
 .hoja button.peligro {
-  background: #4a1f24;
-  color: #ffb3b3;
+  background: #f7d9d6;
+  color: #9c2b2b;
 }
 
 .hoja button.cancelar {
@@ -739,8 +739,8 @@ body.conductor #lista li[data-id]:active {
 
 .emergente {
   margin: auto;
-  border-color: #5a2a3d;
-  background: linear-gradient(180deg, #24161e, var(--tarjeta));
+  border-color: #2e2e2e;
+  background: var(--tarjeta);
 }
 
 .encuesta-cuerpo {
@@ -773,7 +773,7 @@ body.conductor #lista li[data-id]:active {
   margin: 8px 0;
   padding: 12px 14px;
   text-align: left;
-  background: #0c0c11;
+  background: #ffffff;
   border: 1px solid var(--borde);
 }
 
@@ -800,12 +800,12 @@ body.conductor #lista li[data-id]:active {
 }
 
 .encuestas-hoja button.principal {
-  background: linear-gradient(90deg, var(--acento), #ff6a4d);
-  color: #fff;
+  background: var(--acento);
+  color: var(--texto);
 }
 
 .encuestas-hoja button.secundario {
-  background: #262632;
+  background: #f1e6dc;
 }
 
 .tipo-enc {
@@ -818,12 +818,12 @@ body.conductor #lista li[data-id]:active {
   margin: 0;
   padding: 10px 6px;
   font-size: 15px;
-  background: #1b1b24;
+  background: #fffaf5;
   border: 1px solid var(--borde);
 }
 
 .encuestas-hoja .tipo-enc button.activo {
-  background: #3a1a28;
+  background: #e8f0cc;
   border-color: var(--acento);
 }
 
@@ -844,26 +844,26 @@ body.conductor #lista li[data-id]:active {
   width: 100%;
   font: inherit;
   font-weight: 800;
-  color: #fff;
+  color: var(--texto);
   border: 0;
   border-radius: 12px;
   padding: 12px;
-  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+  background: var(--acento);
   cursor: pointer;
 }
 
 .hoja .resp-enviar {
   margin-top: 0;
-  background: linear-gradient(90deg, var(--acento), #ff6a4d);
+  background: var(--acento);
 }
 
 .caja-anonima {
-  border-color: #2d4a5a;
-  background: linear-gradient(180deg, #14222a, var(--tarjeta));
+  border-color: #2e2e2e;
+  background: #eaf4f9;
 }
 
 .caja-anonima .etiqueta {
-  color: #6cc8ff;
+  color: #2f6f9f;
 }
 
 .respuestas {
@@ -886,7 +886,7 @@ body.conductor #lista li[data-id]:active {
 }
 
 .respuestas li.en-pantalla {
-  box-shadow: inset 3px 0 0 #6cc8ff;
+  box-shadow: inset 3px 0 0 #2f6f9f;
   padding-left: 10px;
 }
 
@@ -895,9 +895,9 @@ body.conductor #lista li[data-id]:active {
   font: inherit;
   font-size: 14px;
   font-weight: 800;
-  color: #6cc8ff;
-  background: #14222a;
-  border: 1px solid #2d4a5a;
+  color: #2f6f9f;
+  background: #eaf4f9;
+  border: 1px solid #2e2e2e;
   border-radius: 999px;
   padding: 6px 12px;
   cursor: pointer;
@@ -905,12 +905,12 @@ body.conductor #lista li[data-id]:active {
 
 /* 📮 respuesta anónima destacada (vista del público) */
 .destacado-publico.anonima-dest {
-  border-color: #2d6a8a;
-  background: linear-gradient(180deg, #14222a, #111a20);
+  border-color: #2e2e2e;
+  background: #ffe3c8;
 }
 
 .destacado-publico.anonima-dest .etiqueta-dest {
-  color: #6cc8ff;
+  color: #2f6f9f;
 }
 
 .contexto-dest {
@@ -946,10 +946,10 @@ body.conductor #lista li[data-id]:active {
   max-width: calc(100vw - 32px);
   padding: 10px 16px;
   border-radius: 12px;
-  background: #2a2a38;
+  background: #2e2e2e;
   color: var(--texto);
   font-weight: 700;
-  box-shadow: 0 8px 30px rgb(0 0 0 / 0.5);
+  box-shadow: 0 8px 30px rgb(46 46 46 / 0.2);
 }
 
 .toast button {
@@ -965,6 +965,191 @@ body.conductor #lista li[data-id]:active {
 }
 
 .toast.malo {
-  background: #5a1f24;
-  color: #ffd0d0;
+  background: #9c2b2b;
+  color: #ffffff;
+}
+
+/* ---------- estética del evento (flyer de Brindis Bravo) ----------
+   Crema, tinta de marcador, verde oliva y naranja. Tarjetas y botones como stickers:
+   borde negro, esquinas apenas irregulares y una sombra corrida. */
+:root {
+  --tinta: #2e2e2e;
+  --verde: #86a80c;
+  --naranja: #f99a45;
+  --mano: 18px 7px 16px 8px / 8px 17px 7px 18px;
+  --sombra: 3px 3px 0 var(--tinta);
+  --redonda: "Baloo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "DM Mono", ui-monospace, Menlo, monospace;
+}
+
+body {
+  font-family: var(--redonda);
+  font-weight: 500;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.cabecera {
+  border-bottom: 2px solid var(--tinta);
+}
+
+.logo-cabecera {
+  display: block;
+  height: 24px;
+  width: auto;
+}
+
+.programa {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.gente,
+.contador,
+.rol-texto,
+.respuestas .hora,
+.encuesta .pie,
+.encuesta .etiqueta,
+.encuesta-cuerpo .etiqueta,
+.etiqueta-dest,
+.contexto-dest,
+.marca-estado,
+.estado-enc {
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+
+.tarjeta,
+.encuesta,
+.destacado-publico,
+.hoja,
+.aviso,
+.estado-envio,
+.enc-item {
+  border: 2px solid var(--tinta);
+  border-radius: var(--mano);
+  box-shadow: var(--sombra);
+}
+
+input,
+textarea {
+  border: 2px solid var(--tinta);
+  border-radius: 12px;
+  background: #fff;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--verde);
+  box-shadow: 0 0 0 3px rgb(134 168 12 / 0.3);
+}
+
+/* Botones: sticker verde con borde y sombra; al tocarlo se "aprieta" */
+.boton,
+.chip-boton,
+.resp-enviar,
+.encuestas-hoja button.principal {
+  font-family: var(--redonda);
+  font-weight: 800;
+  color: var(--tinta);
+  background: var(--verde);
+  border: 2px solid var(--tinta);
+  border-radius: var(--mano);
+  box-shadow: var(--sombra);
+}
+
+.chip-boton {
+  background: var(--naranja);
+}
+
+.boton:active:not(:disabled),
+.chip-boton:active,
+.resp-enviar:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--tinta);
+}
+
+.hoja button {
+  border: 2px solid var(--tinta);
+  font-weight: 800;
+}
+
+.hoja button.cancelar {
+  border-color: transparent;
+}
+
+.opcion {
+  border: 2px solid var(--tinta);
+  border-radius: var(--mano);
+}
+
+.opcion.elegida {
+  border-color: var(--tinta);
+  box-shadow: inset 0 0 0 2px var(--naranja);
+}
+
+.prod-toggle {
+  border: 2px solid var(--tinta);
+}
+
+.nuevos {
+  background: var(--naranja);
+  border: 2px solid var(--tinta);
+}
+
+.toast {
+  background: var(--tinta);
+  color: #f8efe8;
+  border-radius: var(--mano);
+}
+
+.link {
+  font-weight: 700;
+}
+
+/* Dibujos del evento */
+.ilustracion {
+  display: block;
+  width: 150px;
+  max-width: 60%;
+  margin: -6px auto 10px;
+}
+
+.icono-grande {
+  font-size: 52px;
+}
+
+.destacado-publico .nick {
+  font-weight: 800;
+}
+
+.hoja .opcion {
+  border: 2px solid var(--tinta);
+  border-radius: var(--mano);
+  margin: 10px 0;
+}
+
+.hoja .opcion:active:not(:disabled) {
+  background: #fff1e3;
+}
+
+.hoja button:focus-visible,
+.opcion:focus-visible {
+  outline: 3px solid var(--naranja);
+  outline-offset: 2px;
+}
+
+.hoja button[data-acc="destacar"] {
+  background: var(--verde);
+  box-shadow: var(--sombra);
+}
+
+.hoja button.peligro {
+  border-color: #9c2b2b;
 }

@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#101016">
+<meta name="theme-color" content="#f8efe8">
 <title>Brindis Bravo · Chat en vivo</title>
+<link rel="icon" href="marca/icono-64.png">
+<link rel="apple-touch-icon" href="marca/icono-180.png">
+<link rel="stylesheet" href="fuentes/fuentes.css">
 <link rel="stylesheet" href="publico.css">
 </head>
 <body>
 <header class="cabecera">
   <span class="punto" id="punto" title="Conexión"></span>
   <div class="titulos">
-    <span class="marca">Brindis Bravo</span>
+    <span><img class="logo-cabecera" src="marca/brindis-bravo-linea.png" alt="Brindis Bravo"></span>
     <span class="linea2"><span class="programa" id="programa" hidden></span><span class="gente" id="gente" hidden></span></span>
   </div>
   <div class="yo" id="zonaYo" hidden>
@@ -23,6 +26,7 @@
 <!-- ---------- entrar ---------- -->
 <section id="acceso" class="acceso" hidden>
   <form id="formNuevo" class="tarjeta">
+    <img class="ilustracion" src="marca/sillon.png" alt="">
     <h1>¡Sumate al chat!</h1>
     <p class="nota">Elegí tu apodo y una clave. El apodo queda para vos: nadie más lo puede usar.</p>
     <label>Apodo <input id="nNick" maxlength="24" autocomplete="username" autocapitalize="words" spellcheck="false" required></label>
@@ -33,6 +37,7 @@
     <p class="cambiar">¿Ya tenés cuenta? <button type="button" class="link" data-modo="entrar">Entrá acá</button></p>
   </form>
   <form id="formEntrar" class="tarjeta" hidden>
+    <img class="ilustracion" src="marca/sillon.png" alt="">
     <h1>Entrá al chat</h1>
     <label>Apodo <input id="eNick" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
     <label>Clave <input id="eClave" type="password" autocomplete="current-password" required></label>

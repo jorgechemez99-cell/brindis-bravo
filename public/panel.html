@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#101016">
+<meta name="theme-color" content="#f8efe8">
 <meta name="robots" content="noindex">
 <title>Brindis Bravo · Producción</title>
+<link rel="icon" href="marca/icono-64.png">
+<link rel="apple-touch-icon" href="marca/icono-180.png">
+<link rel="stylesheet" href="fuentes/fuentes.css">
 <link rel="stylesheet" href="panel.css">
 </head>
 <body>
 <section id="login" class="login" hidden>
   <form id="formLogin" class="tarjeta">
-    <div class="marca-login">Brindis Bravo</div>
+    <img class="marca-login" src="marca/brindis-bravo-linea.png" alt="Brindis Bravo">
     <h1>Panel de producción</h1>
     <label>Usuario <input id="lUsuario" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
     <label>Clave <input id="lClave" type="password" autocomplete="current-password" required></label>
@@ -20,7 +23,7 @@
     <p id="lError" class="error"></p>
   </form>
   <form id="formPrimera" class="tarjeta" hidden>
-    <div class="marca-login">Brindis Bravo</div>
+    <img class="marca-login" src="marca/brindis-bravo-linea.png" alt="Brindis Bravo">
     <h1>¡Primera vez!</h1>
     <p class="nota">Elegí la clave del admin. Con esa entrás vos, y desde adentro creás las cuentas de los productores. Esto se hace una sola vez.</p>
     <label>Usuario <input value="admin" autocomplete="username" readonly></label>
@@ -217,10 +220,11 @@
     <!-- ---------- QR ---------- -->
     <section id="tab-qr" class="tab" hidden>
       <div id="qrImprimible" class="tarjeta qr-imprimible">
-        <div class="marca-login">Brindis Bravo</div>
+        <img class="marca-login" src="marca/brindis-bravo.png" alt="Brindis Bravo">
         <h2>Escaneá y comentá en la pantalla</h2>
         <div id="qrGrande"></div>
         <p id="qrUrl" class="qr-url"></p>
+        <img class="ilustracion" src="marca/sillon.png" alt="">
       </div>
       <div class="fila-botones">
         <button id="btnImprimir" class="boton">Imprimir</button>

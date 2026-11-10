@@ -5,7 +5,7 @@
 //   - Admin: va al panel (con ?chat=1 se queda en el chat, como productor).
 (function () {
   "use strict";
-  const { Conexion, urlWs, idAleatorio, esc, largo, guardado, colorDe, iconoRol } = window.Comun;
+  const { Conexion, urlWs, idAleatorio, esc, largo, guardado, tintaDe, iconoRol } = window.Comun;
   const $ = (id) => document.getElementById(id);
 
   let disp = guardado("chat.disp");
@@ -145,7 +145,7 @@
     $("chat").hidden = false;
     $("zonaYo").hidden = false;
     $("miNick").innerHTML = (yo.equipo ? iconoRol(yo.rol) : "") + esc(yo.nick);
-    $("miNick").style.color = yo.equipo ? "var(--acento2)" : colorDe(yo.nick);
+    $("miNick").style.color = yo.equipo ? "var(--acento2)" : tintaDe(yo.nick);
     $("btnProd").hidden = !esModerador();
     document.body.classList.toggle("moderador", esModerador());
     document.body.classList.toggle("conductor", rol() === "conductor");
@@ -236,7 +236,7 @@
   $("nuevos").addEventListener("click", alFinal);
 
   function htmlMensaje(m, marca) {
-    const color = m.prod ? "" : ` style="color:${m.equipo ? "var(--acento2)" : colorDe(m.nick)}"`;
+    const color = m.prod ? "" : ` style="color:${m.equipo ? "var(--acento2)" : tintaDe(m.nick)}"`;
     return (
       '<button type="button" class="borrar-rapido" aria-label="Borrar este mensaje" title="Borrar">✕</button>' +
       (m.equipo ? iconoRol(m.rol) : "") +
@@ -324,7 +324,7 @@
       el.className = "destacado-publico" + (mio ? " mio" : "");
       el.innerHTML =
         `<span class="etiqueta-dest">${mio ? "⭐ ¡Destacaron tu mensaje en la pantalla!" : "⭐ Destacado en la pantalla"}</span>` +
-        `<span class="nick" style="color:${colorDe(d.nick)}">${esc(d.nick)}</span><span class="txt">${esc(d.texto)}</span>`;
+        `<span class="nick" style="color:${tintaDe(d.nick)}">${esc(d.nick)}</span><span class="txt">${esc(d.texto)}</span>`;
     }
     el.hidden = false;
     tDestacado = setTimeout(() => {
@@ -698,7 +698,7 @@
     const yaDestacado = !!destacadoAhora() && destacadoAhora().id === elegido.id;
     $("hoja").querySelector('[data-acc="destacar"]').hidden = yaDestacado;
     $("hoja").querySelector('[data-acc="quitar"]').hidden = !yaDestacado;
-    $("hojaMsj").innerHTML = `<b style="color:${colorDe(elegido.nick)}">${esc(elegido.nick)}</b>: ${esc(elegido.texto)}`;
+    $("hojaMsj").innerHTML = `<b style="color:${tintaDe(elegido.nick)}">${esc(elegido.nick)}</b>: ${esc(elegido.texto)}`;
     $("hoja").showModal();
   });
 

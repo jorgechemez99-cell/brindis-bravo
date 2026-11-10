@@ -18,6 +18,7 @@ Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no 
 - [Moderar](#moderar)
 - [Programas y título](#programas-y-título)
 - [Armar la pantalla](#armar-la-pantalla)
+- [La estética del evento](#la-estética-del-evento)
 - [La app de escritorio](#la-app-de-escritorio)
 - [Encuestas](#encuestas)
 - [Ensayo y noche del show](#ensayo-y-noche-del-show)
@@ -132,6 +133,18 @@ Se puede hacer **directo sobre la pantalla real** con la app (**✏️ Editar**,
 Todo se aplica en vivo.
 
 Todo entra y sale con animaciones suaves: los mensajes se deslizan y el resto se corre de a poco, el destacado aparece con una subida suave, la encuesta y el QR entran y se van con un deslizamiento corto (también al prenderlos o apagarlos), y el contador de gente late cuando cambia. Si la compu tiene activado "reducir movimiento", no se anima nada.
+
+## La estética del evento
+
+Todo sigue la línea del flyer: fondo crema, dibujos de marcador, verde oliva y naranja.
+
+- **Letras**: [Baloo 2](https://fonts.google.com/specimen/Baloo+2) para los textos y [DM Mono](https://fonts.google.com/specimen/DM+Mono) para los datos chicos (contador, etiquetas, porcentajes). Están dentro del sitio (`public/fuentes/`), así que andan aunque el bar no tenga buena conexión. Las dos son de licencia libre (OFL).
+- **Dibujos** (`public/marca/`): el letrero de Brindis Bravo, el sillón, la BB, el trago y el sifón, recortados de las piezas del evento. Son del diseño del evento, no de este proyecto.
+- **En la pantalla**: el título es el letrero con el programa en una etiqueta verde. Los mensajes son tarjetitas crema con borde de marcador. El destacado trae el sillón asomado: si es un 📢 de la producción, va en verde con el trago, y si es una respuesta anónima, en naranja con el sifón. El QR lleva la BB de sticker.
+- **En el celu y el panel**: los mismos colores, letras y botones tipo sticker. Al entrar aparece el sillón, y arriba de todo el letrero.
+- Los apodos tienen colores oscuros de la misma familia, para que se lean bien sobre el crema.
+
+Para cambiar colores o letras: las variables están al principio de `pantalla.css`, `publico.css` y `panel.css`.
 
 ## La app de escritorio
 
@@ -304,7 +317,8 @@ npm run deploy                       # publica en Cloudflare (nunca durante un s
   - `index.html` y `publico.js`: el chat del celu.
   - `panel.*`: el panel.
   - `pantalla.*`: la capa transparente; `pantalla-editar.js` es la edición con el mouse, que sólo se activa dentro de la app.
-  - `comun.js`: la conexión que se reconecta sola, con latido y reintentos.
+  - `comun.js`: la conexión que se reconecta sola, con latido y reintentos, y los colores de los apodos.
+  - `marca/` y `fuentes/`: los dibujos del evento y las letras (ver [La estética del evento](#la-estética-del-evento)).
 - `overlay/`: la app de escritorio (Electron).
   - Una ventana transparente, siempre arriba y que deja pasar los clics, más la botonera.
   - En Mac marca las ventanas como "estacionarias" con [koffi](https://koffi.dev), para que no se corran al mostrar el escritorio.

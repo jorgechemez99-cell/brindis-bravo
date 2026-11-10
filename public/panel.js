@@ -1,7 +1,7 @@
 // Panel de producción: moderar, destacar, encuestas, ajustes de pantalla y admin.
 (function () {
   "use strict";
-  const { Conexion, urlWs, esc, colorDe, svgQR, servidor, iconoRol, ROLES } = window.Comun;
+  const { Conexion, urlWs, esc, tintaDe, svgQR, servidor, iconoRol, ROLES } = window.Comun;
   const $ = (id) => document.getElementById(id);
 
   const S = {
@@ -374,7 +374,7 @@
           ? `<span class="chip amarillo">${iconoRol(m.rol)} ${(ROLES[m.rol] || ROLES.productor)[1]}</span>`
           : "";
     li.innerHTML =
-      `<div class="meta"><span class="nick" style="color:${m.prod ? "var(--acento2)" : colorDe(m.nick)}">${esc(m.nick)}</span>` +
+      `<div class="meta"><span class="nick" style="color:${m.prod ? "var(--acento2)" : tintaDe(m.nick)}">${esc(m.nick)}</span>` +
       `<span>${hora(m.ts)}</span>${CHIPS[m.estado] || ""}${etiqueta}</div>` +
       `<div class="texto">${esc(m.texto)}</div>` +
       `<div class="acciones">${acc.join("")}</div>`;
@@ -414,7 +414,7 @@
     const caja = $("cajaDestacado");
     caja.hidden = !d;
     if (!d) return;
-    caja.innerHTML = `<div><div class="nota">En pantalla, destacado:</div><div class="texto"><span style="color:${colorDe(d.nick)}">${esc(d.nick)}:</span> ${esc(d.texto)}</div></div><button class="boton chico secundario" id="btnQuitarDest">Quitar</button>`;
+    caja.innerHTML = `<div><div class="nota">En pantalla, destacado:</div><div class="texto"><span style="color:${tintaDe(d.nick)}">${esc(d.nick)}:</span> ${esc(d.texto)}</div></div><button class="boton chico secundario" id="btnQuitarDest">Quitar</button>`;
     $("btnQuitarDest").onclick = () => accion("destacado/quitar");
   }
 
