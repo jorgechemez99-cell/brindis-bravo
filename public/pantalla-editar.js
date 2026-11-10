@@ -24,10 +24,12 @@
   raiz.id = "edicion";
   raiz.hidden = true;
   raiz.innerHTML =
+    '<div id="lienzoEd">' +
     CAJAS.map((c) => {
       const dirs = c === "qr" ? ["nw", "ne", "sw", "se"] : ["n", "s", "e", "w", "nw", "ne", "sw", "se"];
       return `<div class="marco-ed" data-caja="${c}"><span>${NOMBRES[c]}</span>${dirs.map((d) => `<i class="tirador-ed ${d}" data-dir="${d}"></i>`).join("")}</div>`;
     }).join("") +
+    "</div>" +
     `<div class="barra-ed" id="barraEd">
       <div class="agarre-ed" title="Arrastrá para mover esta barra">⠿ Editando la pantalla <span class="nota-ed">· arrastrá las cajas y tirá de sus bordes</span></div>
       <form class="login-ed" id="loginEd" hidden>
@@ -130,13 +132,17 @@
 
   // ---------- recuadros ----------
 
+  // El recuadro donde se dibuja (toda la ventana o el tamaño fijo elegido en el panel).
+  const lienzo = () => document.getElementById("lienzo").getBoundingClientRect();
+
   // Rectángulo de cada caja en % de la pantalla.
   function rectDe(c) {
     const a = P.ajustes()[c];
     if (c !== "qr") return { x: a.x, y: a.y, w: a.w, h: a.h };
     const qr = document.getElementById("qr");
     const alto = qr.offsetWidth ? qr.offsetHeight / qr.offsetWidth : 1.12; // con el texto de abajo
-    const prop = innerHeight / innerWidth;
+    const L = lienzo();
+    const prop = L.height / L.width;
     return { x: a.x, y: a.y, w: a.tam * prop, h: a.tam * alto };
   }
 
@@ -202,8 +208,9 @@
   raiz.addEventListener("pointermove", (ev) => {
     if (!arrastre) return;
     const A = arrastre;
-    const dx = ((ev.clientX - A.x0) / innerWidth) * 100;
-    const dy = ((ev.clientY - A.y0) / innerHeight) * 100;
+    const L = lienzo();
+    const dx = ((ev.clientX - A.x0) / L.width) * 100;
+    const dy = ((ev.clientY - A.y0) / L.height) * 100;
     const r =
       A.dir === "mover"
         ? { ...A.base, x: Math.max(0, Math.min(100 - A.base.w, A.base.x + dx)), y: Math.max(0, Math.min(100 - A.base.h, A.base.y + dy)) }

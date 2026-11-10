@@ -7,8 +7,15 @@
   --fondo-globo: 0.85;
   --fondo-encuesta: 0.92;
   --letra: 30;
+  /* El recuadro donde se dibuja: toda la ventana, o el tamaño fijo que se elige en el panel */
+  --lx: 0px;
+  --ly: 0px;
+  --lw: 100vw;
+  --lh: 100vh;
   /* 1 unidad = 1 píxel de una pantalla de 1080 de alto, en cualquier resolución */
-  --u: calc(100vh / 1080);
+  --u: calc(var(--lh) / 1080);
+  /* 1 % del alto del recuadro (lo que antes era 1vh) */
+  --vh: calc(var(--lh) / 100);
 
   --crema: 248 239 232;
   --papel: 255 250 245;
@@ -81,8 +88,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-#capa {
+#lienzo {
   position: fixed;
+  left: var(--lx);
+  top: var(--ly);
+  width: var(--lw);
+  height: var(--lh);
+  overflow: hidden;
+}
+
+#capa {
+  position: absolute;
   inset: 0;
   opacity: var(--opacidad);
   font-size: calc(var(--letra) * var(--u));
@@ -313,7 +329,7 @@ body {
 @keyframes cajaEntra {
   from {
     opacity: 0;
-    transform: translateY(0.8vh) scale(0.97);
+    transform: translateY(calc(0.8 * var(--vh))) scale(0.97);
   }
   to {
     opacity: 1;
@@ -324,7 +340,7 @@ body {
 @keyframes cajaSale {
   to {
     opacity: 0;
-    transform: translateY(0.6vh) scale(0.98);
+    transform: translateY(calc(0.6 * var(--vh))) scale(0.98);
   }
 }
 
@@ -478,9 +494,9 @@ body {
   box-sizing: border-box;
   overflow: hidden;
   background: rgb(var(--sup) / var(--fondo-encuesta));
-  border: 0.35vh solid var(--linea);
-  border-radius: 2.4vh 1vh 2.1vh 1.2vh / 1.2vh 2.3vh 1vh 2.4vh;
-  box-shadow: 0.45vh 0.55vh 0 var(--sombra-c);
+  border: calc(0.35 * var(--vh)) solid var(--linea);
+  border-radius: calc(2.4 * var(--vh)) calc(1 * var(--vh)) calc(2.1 * var(--vh)) calc(1.2 * var(--vh)) / calc(1.2 * var(--vh)) calc(2.3 * var(--vh)) calc(1 * var(--vh)) calc(2.4 * var(--vh));
+  box-shadow: calc(0.45 * var(--vh)) calc(0.55 * var(--vh)) 0 var(--sombra-c);
 }
 
 /* Mismo halo que los mensajes, por si el fondo de la encuesta está muy transparente */
@@ -610,14 +626,14 @@ body {
 
 /* Puntito rojo discreto si la pantalla perdió la conexión hace rato. */
 #sinConexion {
-  position: fixed;
-  right: 0.6vh;
-  top: 0.6vh;
-  width: 1vh;
-  height: 1vh;
+  position: absolute;
+  right: calc(0.6 * var(--vh));
+  top: calc(0.6 * var(--vh));
+  width: calc(1 * var(--vh));
+  height: calc(1 * var(--vh));
   border-radius: 50%;
   background: #ff3b3b;
-  box-shadow: 0 0 0.6vh #ff3b3b;
+  box-shadow: 0 0 calc(0.6 * var(--vh)) #ff3b3b;
 }
 
 /* ---------- edición sobre la pantalla (app de escritorio) ---------- */
@@ -632,6 +648,20 @@ body.editando {
   z-index: 100;
   font: 14px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: #fff;
+}
+
+/* Los recuadros de edición siguen al recuadro de la pantalla (toda la ventana o el tamaño fijo) */
+#lienzoEd {
+  position: absolute;
+  left: var(--lx);
+  top: var(--ly);
+  width: var(--lw);
+  height: var(--lh);
+  pointer-events: none;
+}
+
+#lienzoEd .marco-ed {
+  pointer-events: auto;
 }
 
 .marco-ed {

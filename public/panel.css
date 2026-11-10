@@ -548,7 +548,9 @@ body.sin-control #cajaDestacado button {
 
 .lienzo {
   position: relative;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 9; /* el panel le pone la forma de la pantalla elegida */
+  max-height: 70vh;
+  margin: 0 auto;
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid var(--borde);
@@ -1143,4 +1145,18 @@ h2 {
   :root[data-tema="oscuro"] .toast.malo {
     color: #2e2e2e;
   }
+}
+
+/* Tamaño de la pantalla */
+.tam-fila {
+  align-items: end;
+}
+
+#tamPantalla label.check {
+  margin: 4px 0 12px;
+}
+
+#tamPantalla code {
+  font-family: "DM Mono", ui-monospace, Menlo, monospace;
+  word-break: break-all;
 }

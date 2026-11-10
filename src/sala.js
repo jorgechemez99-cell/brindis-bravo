@@ -26,6 +26,9 @@ const AJUSTES_INICIALES = {
   destacado: { visible: true, x: 14, y: 30, w: 72, h: 40 },
   qr: { visible: true, x: 3, y: 68, tam: 24 },
   urlQR: "",
+  // Tamaño de la pantalla real, en píxeles. Con "fijo", la pantalla dibuja sólo en ese recuadro
+  // (empezando en x, y) aunque la ventana o la salida sea más grande; si no, ocupa toda la ventana.
+  lienzo: { fijo: false, ancho: 1920, alto: 1080, x: 0, y: 0 },
 };
 const CAJAS = ["ventana", "encuesta", "destacado", "qr"];
 
@@ -47,6 +50,7 @@ const LIMITES = {
   destacado: { visible: "bool", x: [0, 95], y: [0, 95], w: [8, 100], h: [8, 100] },
   qr: { visible: "bool", x: [0, 95], y: [0, 95], tam: [5, 70] },
   urlQR: "texto",
+  lienzo: { fijo: "bool", ancho: [100, 7680], alto: [100, 4320], x: [0, 7680], y: [0, 4320] },
 };
 
 // Roles del equipo. El conductor lee el chat completo en su celu, escribe y destaca; no modera.
@@ -182,7 +186,7 @@ export class Sala extends DurableObject {
   ajustes() {
     const g = this.leer("ajustes", {});
     const a = { ...AJUSTES_INICIALES, ...g };
-    for (const k of CAJAS) a[k] = { ...AJUSTES_INICIALES[k], ...(g[k] || {}) };
+    for (const k of [...CAJAS, "lienzo"]) a[k] = { ...AJUSTES_INICIALES[k], ...(g[k] || {}) };
     return a;
   }
 
@@ -1161,7 +1165,9 @@ export class Sala extends DurableObject {
     },
 
     "ajustes/restablecer"(u) {
-      const nuevos = { ...AJUSTES_INICIALES, urlQR: this.ajustes().urlQR };
+      // La dirección del QR y el tamaño de la pantalla son de la instalación: no se tocan.
+      const { urlQR, lienzo } = this.ajustes();
+      const nuevos = { ...AJUSTES_INICIALES, urlQR, lienzo };
       this.guardar("ajustes", nuevos);
       this.aPantallas({ t: "ajustes", ajustes: this.ajustes() });
       this.refrescarPanelesPronto();

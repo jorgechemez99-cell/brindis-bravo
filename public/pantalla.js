@@ -54,6 +54,12 @@
     raiz.style.setProperty("--fondo-globo", a.fondoGlobo);
     raiz.style.setProperty("--fondo-encuesta", a.fondoEncuesta ?? 0.92);
     raiz.dataset.tema = a.tema === "oscuro" ? "oscuro" : "claro";
+    // Tamaño fijo (pantalla LED, salida de vMix más grande, etc.): dibuja sólo en ese recuadro.
+    // En la vista previa del panel no: ahí la ventana ya tiene el tamaño de la pantalla.
+    const L = a.lienzo;
+    const fijo = !vista && L && L.fijo;
+    for (const [k, v] of [["--lx", fijo && L.x + "px"], ["--ly", fijo && L.y + "px"], ["--lw", fijo && L.ancho + "px"], ["--lh", fijo && L.alto + "px"]])
+      v ? raiz.style.setProperty(k, v) : raiz.style.removeProperty(k);
     raiz.style.setProperty("--letra", a.letra);
     ubicar($("ventana"), a.ventana);
     ubicar($("encuesta"), a.encuesta);
@@ -71,8 +77,8 @@
     mostrarCaja(qr, a.qr.visible, animar);
     qr.style.left = a.qr.x + "%";
     qr.style.top = a.qr.y + "%";
-    qr.style.width = a.qr.tam + "vh";
-    qr.style.fontSize = a.qr.tam * 0.085 + "vh";
+    qr.style.width = `calc(${a.qr.tam} * var(--vh))`;
+    qr.style.fontSize = `calc(${a.qr.tam * 0.085} * var(--vh))`;
     const url = a.urlQR || servidor();
     if (url !== qrHecho) {
       $("qrImg").innerHTML = svgQR(url);

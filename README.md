@@ -129,6 +129,12 @@ Se puede hacer **directo sobre la pantalla real** con la app (**✏️ Editar**,
 - **Vista previa**: arrastrá cada recuadro para moverlo y tirá de bordes o esquinas para agrandarlo. En la encuesta y el destacado la letra se acomoda sola; el QR siempre queda cuadrado.
 - **Tema oscuro**: cambia la pantalla de crema a carbón con borde crema. Es útil si lo que proyectan es oscuro. El QR y el letrero quedan siempre claros, para que se lean y se escaneen.
 - **Controles**: opacidad, fondos (de la ventana, de cada mensaje y de la encuesta, cada uno de 0 a 100 %), letra, mensajes a la vez, duración de los mensajes, cuánto queda el destacado (10 s; en 0 queda hasta quitarlo), tamaño del QR, espera entre mensajes de una misma persona.
+- **📐 Tamaño de la pantalla**: el formato de la pantalla real (Full HD, HD, **LED 4 × 2 de 1024 × 512**, LED parada u otro tamaño). La vista previa toma esa forma, así lo que acomodás es lo que se ve.
+  - **Con vMix**: entrada *Web Browser* con la dirección `…/pantalla` (el panel la muestra). El fondo queda transparente solo.
+    - Si a esa entrada le ponés el mismo ancho y alto que la pantalla (por ejemplo 1024 × 512), no hace falta nada más.
+    - Si la entrada ocupa toda la salida de vMix (por ejemplo 1920 × 1080) y la pantalla LED toma sólo una parte, tildá *dibujar sólo en un recuadro* y poné dónde empieza esa parte (casi siempre 0 y 0, arriba a la izquierda).
+  - vMix no deja escribir una salida de 1024 × 512: trabaja con tamaños fijos (720p, 1080p, 4K). Lo normal es sacar 1080p y que el procesador de la pantalla LED tome el pedazo que le corresponde. Eso lo arregla quien maneja la LED.
+  - Con una pantalla de 512 de alto, la letra del chat sale más chica (30 equivale a unos 14 píxeles reales): si cuesta leer, subí *Tamaño de letra del chat*.
 - **Dirección que abre el QR**: si se deja vacía, el QR lleva a este mismo sitio. El QR para imprimir está en la pestaña **QR**.
 
 Todo se aplica en vivo. Si el fondo de los mensajes o de la encuesta queda muy transparente, las letras llevan un halo suave para que se sigan leyendo sobre lo que se proyecta.

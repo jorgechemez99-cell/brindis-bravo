@@ -732,6 +732,7 @@
     $("chkFijos").checked = S.ajustes.duracion === 0;
     $("chkOscuro").checked = S.ajustes.tema === "oscuro";
     if (document.activeElement !== $("urlQR")) $("urlQR").value = S.ajustes.urlQR || "";
+    pintarTamano();
     posicionarMarcos();
   }
 
@@ -769,6 +770,42 @@
   });
 
   $("urlQR").addEventListener("change", () => enviarAjustes({ urlQR: $("urlQR").value.trim() }));
+
+  // ---------- tamaño de la pantalla ----------
+  // Para pantallas que no son 16:9 (la LED de 4 × 2 es 1024 × 512) o salidas más grandes que la pantalla.
+  function pintarTamano() {
+    const L = S.ajustes.lienzo || { fijo: false, ancho: 1920, alto: 1080, x: 0, y: 0 };
+    const clave = L.ancho + "x" + L.alto;
+    const hay = [...$("tamFormato").options].some((o) => o.value === clave);
+    if (document.activeElement !== $("tamFormato")) $("tamFormato").value = hay ? clave : "otro";
+    for (const [id, k] of [["tamAncho", "ancho"], ["tamAlto", "alto"], ["tamX", "x"], ["tamY", "y"]])
+      if (document.activeElement !== $(id)) $(id).value = L[k];
+    $("tamFijo").checked = !!L.fijo;
+    $("tamPos").hidden = !L.fijo;
+    $("urlPantalla").textContent = servidor() + "/pantalla";
+    escalarVista();
+  }
+
+  function cambiarTamano(parcial) {
+    if (!S.ajustes) return;
+    editandoHasta = Date.now() + 1200;
+    S.ajustes.lienzo = { ...S.ajustes.lienzo, ...parcial };
+    pintarTamano();
+    enviarAjustes({ lienzo: parcial });
+  }
+
+  const numero = (id, min, max) => Math.max(min, Math.min(max, Math.round(Number($(id).value) || 0)));
+  $("tamFormato").addEventListener("change", () => {
+    const v = $("tamFormato").value;
+    if (v === "otro") return $("tamAncho").focus();
+    const [ancho, alto] = v.split("x").map(Number);
+    cambiarTamano({ ancho, alto });
+  });
+  $("tamAncho").addEventListener("change", () => cambiarTamano({ ancho: numero("tamAncho", 100, 7680) }));
+  $("tamAlto").addEventListener("change", () => cambiarTamano({ alto: numero("tamAlto", 100, 4320) }));
+  $("tamX").addEventListener("change", () => cambiarTamano({ x: numero("tamX", 0, 7680) }));
+  $("tamY").addEventListener("change", () => cambiarTamano({ y: numero("tamY", 0, 4320) }));
+  $("tamFijo").addEventListener("change", () => cambiarTamano({ fijo: $("tamFijo").checked }));
   $("btnSimular").addEventListener("click", () => accion("simular", {}, "Llegan 8 mensajes de prueba…"));
   $("btnRestablecer").addEventListener("click", () => {
     if (confirm("¿Volver la pantalla a los valores iniciales?")) accion("ajustes/restablecer");
@@ -808,16 +845,29 @@
     enviarAjustes({ [caja]: { visible: ev.target.checked } });
   });
 
-  // Vista previa: la pantalla real, a escala, con recuadros para mover y agrandar.
+  // Vista previa: la pantalla real, a escala y con su forma, con recuadros para mover y agrandar.
+  function tamLienzo() {
+    const L = (S.ajustes && S.ajustes.lienzo) || {};
+    return { ancho: L.ancho || 1920, alto: L.alto || 1080 };
+  }
   function escalarVista() {
-    const ancho = $("lienzo").clientWidth;
-    if (ancho) $("vista").style.transform = `scale(${ancho / 1920})`;
+    const { ancho, alto } = tamLienzo();
+    const v = $("vista");
+    $("lienzo").style.aspectRatio = `${ancho} / ${alto}`;
+    v.style.width = ancho + "px";
+    v.style.height = alto + "px";
+    const visible = $("lienzo").clientWidth;
+    if (visible) v.style.transform = `scale(${visible / ancho})`;
     posicionarMarcos();
   }
   new ResizeObserver(escalarVista).observe($("lienzo"));
 
   const CAJAS = ["destacado", "ventana", "encuesta", "qr"];
-  const PROP_QR = 9 / 16; // el QR mide tam% del alto: en ancho son tam·9/16 % (pantalla 16:9)
+  // El QR mide tam% del alto: en ancho son tam·alto/ancho % (en 16:9, tam·9/16).
+  function propQR() {
+    const { ancho, alto } = tamLienzo();
+    return alto / ancho;
+  }
   const marco = (caja) => document.querySelector(`.marco[data-caja="${caja}"]`);
   const r1 = (v) => Math.round(v * 10) / 10;
 
@@ -829,7 +879,7 @@
   // Rectángulo de cada caja en % de la pantalla.
   function rectDe(caja) {
     const a = S.ajustes[caja];
-    if (caja === "qr") return { x: a.x, y: a.y, w: a.tam * PROP_QR, h: a.tam * 1.12 };
+    if (caja === "qr") return { x: a.x, y: a.y, w: a.tam * propQR(), h: a.tam * 1.12 };
     return { x: a.x, y: a.y, w: a.w, h: a.h };
   }
 
@@ -863,11 +913,11 @@
     if (dir.includes("s")) y2 = Math.min(100, Math.max(y1 + min, y2 + dy));
     if (caja === "qr") {
       // Sigue siendo cuadrado: manda el lado que más se movió.
-      const base = b.w / PROP_QR;
-      const porAncho = (x2 - x1) / PROP_QR;
+      const base = b.w / propQR();
+      const porAncho = (x2 - x1) / propQR();
       const porAlto = (y2 - y1) / 1.12;
       const tam = Math.max(5, Math.min(70, Math.abs(porAncho - base) >= Math.abs(porAlto - base) ? porAncho : porAlto));
-      const w = tam * PROP_QR;
+      const w = tam * propQR();
       const h = tam * 1.12;
       if (dir.includes("w")) x1 = Math.max(0, x2 - w);
       if (dir.includes("n")) y1 = Math.max(0, y2 - h);
@@ -905,7 +955,7 @@
       A.dir === "mover"
         ? { ...A.base, x: Math.max(0, Math.min(100 - A.base.w, A.base.x + dx)), y: Math.max(0, Math.min(100 - A.base.h, A.base.y + dy)) }
         : redimensionar(A.base, A.dir, dx, dy, A.caja);
-    const c = A.caja === "qr" ? { x: r1(r.x), y: r1(r.y), tam: r1(r.w / PROP_QR) } : { x: r1(r.x), y: r1(r.y), w: r1(r.w), h: r1(r.h) };
+    const c = A.caja === "qr" ? { x: r1(r.x), y: r1(r.y), tam: r1(r.w / propQR()) } : { x: r1(r.x), y: r1(r.y), w: r1(r.w), h: r1(r.h) };
     Object.assign(S.ajustes[A.caja], c);
     ubicarMarco(A.caja, r);
     editandoHasta = Date.now() + 1200;
