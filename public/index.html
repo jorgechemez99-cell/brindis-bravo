@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#f8efe8">
 <title>Brindis Bravo · Chat en vivo</title>
+<script>
+  // Tema del celu antes de pintar nada (así no parpadea): el que eligió la persona con 🌙/☀️
+  // o, si nunca eligió, el modo del teléfono.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("chat.tema"); } catch (e) {}
+    if (t !== "claro" && t !== "oscuro") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
+    document.documentElement.dataset.tema = t;
+    if (t === "oscuro") document.querySelector('meta[name="theme-color"]').content = "#1c1a19";
+  })();
+</script>
 <link rel="icon" href="marca/icono-64.png">
 <link rel="apple-touch-icon" href="marca/icono-180.png">
 <link rel="stylesheet" href="fuentes/fuentes.css">
@@ -17,6 +28,7 @@
     <span><img class="logo-cabecera" src="marca/brindis-bravo-linea.png" alt="Brindis Bravo"></span>
     <span class="linea2"><span class="programa" id="programa" hidden></span><span class="gente" id="gente" hidden></span></span>
   </div>
+  <button id="btnTema" class="btn-tema" type="button"></button>
   <div class="yo" id="zonaYo" hidden>
     <span id="miNick"></span>
     <span><a id="linkPanel" class="link" href="/panel" hidden>Panel</a> <button id="btnSalir" class="link" type="button">Salir</button></span>

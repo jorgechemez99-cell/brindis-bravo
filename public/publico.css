@@ -41,7 +41,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
-  background: rgb(248 239 232 / 0.96);
+  background: var(--os-cabecera, rgb(248 239 232 / 0.96));
   border-bottom: 1px solid var(--borde);
 }
 
@@ -168,7 +168,7 @@ textarea {
   font: inherit;
   font-size: 18px;
   color: var(--texto);
-  background: #ffffff;
+  background: var(--os-campo, #ffffff);
   border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 12px 14px;
@@ -253,18 +253,18 @@ textarea:focus {
 .aviso {
   flex: none;
   margin: 10px 12px 0;
-  background: #fff1d2;
-  border: 1px solid #e2b85a;
-  color: #6e4a00;
+  background: var(--os-amarillo-fondo, #fff1d2);
+  border: 1px solid var(--os-amarillo-borde, #e2b85a);
+  color: var(--os-amarillo-texto, #6e4a00);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 15px;
 }
 
 .aviso.fugaz {
-  background: #fbe1df;
-  border-color: #2e2e2e;
-  color: #9c2b2b;
+  background: var(--os-rojo-fondo, #fbe1df);
+  border-color: var(--linea);
+  color: var(--os-rojo-texto, #9c2b2b);
 }
 
 .feed {
@@ -335,8 +335,8 @@ textarea:focus {
   font: inherit;
   font-size: 15px;
   line-height: 1;
-  color: #9c2b2b;
-  background: #f7d9d6;
+  color: var(--os-rojo-texto, #9c2b2b);
+  background: var(--os-rojo-fondo, #f7d9d6);
   border: 0;
   border-radius: 50%;
   cursor: pointer;
@@ -364,17 +364,17 @@ body.conductor #lista li[data-id] {
 
 body.moderador #lista li[data-id]:active,
 body.conductor #lista li[data-id]:active {
-  background: rgb(46 46 46 / 0.06);
+  background: var(--os-toque, rgb(46 46 46 / 0.06));
 }
 
 /* El mensaje que está destacado en la pantalla (vista del equipo) */
 #lista li.es-destacado {
-  box-shadow: inset 3px 0 0 #c45f12;
+  box-shadow: inset 3px 0 0 var(--acento2);
 }
 
 #lista li.es-destacado .nick::after {
   content: " ★";
-  color: #c45f12;
+  color: var(--acento2);
 }
 
 /* ---------- vista del público: sin chat; destacado un rato y encuestas ---------- */
@@ -412,14 +412,14 @@ body.conductor #lista li[data-id]:active {
 .destacado-publico {
   padding: 14px 16px;
   border-radius: 16px;
-  border: 1px solid #2e2e2e;
+  border: 1px solid var(--linea);
   background: var(--tarjeta);
   overflow-wrap: anywhere;
   animation: aparece 0.4s ease;
 }
 
 .destacado-publico.mio {
-  border-color: #c45f12;
+  border-color: var(--acento2);
   box-shadow: 0 0 24px rgb(249 154 69 / 0.35);
 }
 
@@ -429,7 +429,7 @@ body.conductor #lista li[data-id]:active {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #c45f12;
+  color: var(--acento2);
   margin-bottom: 4px;
 }
 
@@ -441,7 +441,7 @@ body.conductor #lista li[data-id]:active {
 /* 📢 aviso de la producción */
 .destacado-publico.aviso-prod {
   border-color: var(--acento2);
-  background: #e3edbd;
+  background: var(--os-verde-fondo, #e3edbd);
 }
 
 .destacado-publico.aviso-prod .etiqueta-dest {
@@ -471,18 +471,18 @@ body.conductor #lista li[data-id]:active {
   padding: 8px 12px;
   border-radius: 10px;
   font-size: 15px;
-  background: #eef5d6;
+  background: var(--os-verde-fondo, #eef5d6);
   color: var(--ok);
 }
 
 .estado-envio.espera {
-  background: #fff1d2;
-  color: #6e4a00;
+  background: var(--os-amarillo-fondo, #fff1d2);
+  color: var(--os-amarillo-texto, #6e4a00);
 }
 
 .estado-envio.malo {
-  background: #fbe1df;
-  color: #9c2b2b;
+  background: var(--os-rojo-fondo, #fbe1df);
+  color: var(--os-rojo-texto, #9c2b2b);
 }
 
 .nuevos {
@@ -560,7 +560,7 @@ body.conductor #lista li[data-id]:active {
   font-size: 20px;
   border: 1px solid var(--borde);
   border-radius: 12px;
-  background: #fffaf5;
+  background: var(--tarjeta);
   cursor: pointer;
   filter: grayscale(1);
   opacity: 0.7;
@@ -569,13 +569,13 @@ body.conductor #lista li[data-id]:active {
 .prod-toggle.activo {
   filter: none;
   opacity: 1;
-  background: #e8f0cc;
+  background: var(--os-verde-fondo, #e8f0cc);
   border-color: var(--acento2);
 }
 
 .redactar.modo-prod textarea {
   border-color: var(--acento2);
-  background: #f5f9e6;
+  background: var(--os-verde-fondo, #f5f9e6);
 }
 
 .enviar {
@@ -606,7 +606,7 @@ body.conductor #lista li[data-id]:active {
   flex: none;
   margin: 10px 12px 0;
   padding: 10px 14px;
-  border: 1px solid #2e2e2e;
+  border: 1px solid var(--linea);
   border-radius: 14px;
   background: var(--tarjeta);
   max-height: 55%;
@@ -654,7 +654,7 @@ body.conductor #lista li[data-id]:active {
   font-weight: 700;
   text-align: left;
   color: var(--texto);
-  background: #ffffff;
+  background: var(--os-campo, #ffffff);
   border: 1px solid var(--borde);
   border-radius: 12px;
   cursor: pointer;
@@ -717,7 +717,7 @@ body.conductor #lista li[data-id]:active {
   font-weight: 700;
   text-align: center;
   color: var(--texto);
-  background: #f1e6dc;
+  background: var(--os-boton2, #f1e6dc);
   border: 0;
   border-radius: 12px;
   padding: 13px;
@@ -726,8 +726,8 @@ body.conductor #lista li[data-id]:active {
 }
 
 .hoja button.peligro {
-  background: #f7d9d6;
-  color: #9c2b2b;
+  background: var(--os-rojo-fondo, #f7d9d6);
+  color: var(--os-rojo-texto, #9c2b2b);
 }
 
 .hoja button.cancelar {
@@ -739,7 +739,7 @@ body.conductor #lista li[data-id]:active {
 
 .emergente {
   margin: auto;
-  border-color: #2e2e2e;
+  border-color: var(--linea);
   background: var(--tarjeta);
 }
 
@@ -773,7 +773,7 @@ body.conductor #lista li[data-id]:active {
   margin: 8px 0;
   padding: 12px 14px;
   text-align: left;
-  background: #ffffff;
+  background: var(--os-campo, #ffffff);
   border: 1px solid var(--borde);
 }
 
@@ -805,7 +805,7 @@ body.conductor #lista li[data-id]:active {
 }
 
 .encuestas-hoja button.secundario {
-  background: #f1e6dc;
+  background: var(--os-boton2, #f1e6dc);
 }
 
 .tipo-enc {
@@ -818,12 +818,12 @@ body.conductor #lista li[data-id]:active {
   margin: 0;
   padding: 10px 6px;
   font-size: 15px;
-  background: #fffaf5;
+  background: var(--tarjeta);
   border: 1px solid var(--borde);
 }
 
 .encuestas-hoja .tipo-enc button.activo {
-  background: #e8f0cc;
+  background: var(--os-verde-fondo, #e8f0cc);
   border-color: var(--acento);
 }
 
@@ -858,12 +858,12 @@ body.conductor #lista li[data-id]:active {
 }
 
 .caja-anonima {
-  border-color: #2e2e2e;
-  background: #eaf4f9;
+  border-color: var(--linea);
+  background: var(--os-azul-fondo, #eaf4f9);
 }
 
 .caja-anonima .etiqueta {
-  color: #2f6f9f;
+  color: var(--os-azul, #2f6f9f);
 }
 
 .respuestas {
@@ -886,7 +886,7 @@ body.conductor #lista li[data-id]:active {
 }
 
 .respuestas li.en-pantalla {
-  box-shadow: inset 3px 0 0 #2f6f9f;
+  box-shadow: inset 3px 0 0 var(--os-azul, #2f6f9f);
   padding-left: 10px;
 }
 
@@ -895,9 +895,9 @@ body.conductor #lista li[data-id]:active {
   font: inherit;
   font-size: 14px;
   font-weight: 800;
-  color: #2f6f9f;
-  background: #eaf4f9;
-  border: 1px solid #2e2e2e;
+  color: var(--os-azul, #2f6f9f);
+  background: var(--os-azul-fondo, #eaf4f9);
+  border: 1px solid var(--linea);
   border-radius: 999px;
   padding: 6px 12px;
   cursor: pointer;
@@ -905,12 +905,12 @@ body.conductor #lista li[data-id]:active {
 
 /* 📮 respuesta anónima destacada (vista del público) */
 .destacado-publico.anonima-dest {
-  border-color: #2e2e2e;
-  background: #ffe3c8;
+  border-color: var(--linea);
+  background: var(--os-naranja-fondo, #ffe3c8);
 }
 
 .destacado-publico.anonima-dest .etiqueta-dest {
-  color: #2f6f9f;
+  color: var(--os-azul, #2f6f9f);
 }
 
 .contexto-dest {
@@ -977,7 +977,18 @@ body.conductor #lista li[data-id]:active {
   --verde: #86a80c;
   --naranja: #f99a45;
   --mano: 18px 7px 16px 8px / 8px 17px 7px 18px;
-  --sombra: 3px 3px 0 var(--tinta);
+  --sombra: 3px 3px 0 var(--sombra-c);
+  --linea: var(--tinta); /* borde de marcador */
+  --sombra-c: var(--tinta); /* sombra corrida */
+  /* colores de los apodos (el tema oscuro tiene los suyos) */
+  --t0: #5d7a00;
+  --t1: #c45f12;
+  --t2: #2f6f9f;
+  --t3: #a8324f;
+  --t4: #6d4ba0;
+  --t5: #1f7a6e;
+  --t6: #8a5a2b;
+  --t7: #b0428a;
   --redonda: "Baloo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "DM Mono", ui-monospace, Menlo, monospace;
 }
@@ -995,13 +1006,16 @@ h3 {
 }
 
 .cabecera {
-  border-bottom: 2px solid var(--tinta);
+  border-bottom: 2px solid var(--linea);
 }
 
 .logo-cabecera {
   display: block;
   height: 24px;
   width: auto;
+  max-width: 100%; /* si el nombre de la derecha es largo, el letrero se achica en vez de cortarse */
+  object-fit: contain;
+  object-position: left center;
 }
 
 .programa {
@@ -1032,16 +1046,16 @@ h3 {
 .aviso,
 .estado-envio,
 .enc-item {
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
   border-radius: var(--mano);
   box-shadow: var(--sombra);
 }
 
 input,
 textarea {
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
   border-radius: 12px;
-  background: #fff;
+  background: var(--os-campo, #fff);
 }
 
 input:focus,
@@ -1059,7 +1073,7 @@ textarea:focus {
   font-weight: 800;
   color: var(--tinta);
   background: var(--verde);
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
   border-radius: var(--mano);
   box-shadow: var(--sombra);
 }
@@ -1072,11 +1086,11 @@ textarea:focus {
 .chip-boton:active,
 .resp-enviar:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--tinta);
+  box-shadow: 1px 1px 0 var(--sombra-c);
 }
 
 .hoja button {
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
   font-weight: 800;
 }
 
@@ -1085,27 +1099,27 @@ textarea:focus {
 }
 
 .opcion {
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
   border-radius: var(--mano);
 }
 
 .opcion.elegida {
-  border-color: var(--tinta);
+  border-color: var(--linea);
   box-shadow: inset 0 0 0 2px var(--naranja);
 }
 
 .prod-toggle {
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
 }
 
 .nuevos {
   background: var(--naranja);
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
 }
 
 .toast {
-  background: var(--tinta);
-  color: #f8efe8;
+  background: var(--os-toast-fondo, var(--tinta));
+  color: var(--os-toast-texto, #f8efe8);
   border-radius: var(--mano);
 }
 
@@ -1130,13 +1144,13 @@ textarea:focus {
 }
 
 .hoja .opcion {
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
   border-radius: var(--mano);
   margin: 10px 0;
 }
 
 .hoja .opcion:active:not(:disabled) {
-  background: #fff1e3;
+  background: var(--os-naranja-fondo2, #fff1e3);
 }
 
 .hoja button:focus-visible,
@@ -1146,10 +1160,82 @@ textarea:focus {
 }
 
 .hoja button[data-acc="destacar"] {
+  color: var(--tinta);
   background: var(--verde);
   box-shadow: var(--sombra);
 }
 
 .hoja button.peligro {
-  border-color: #9c2b2b;
+  border-color: var(--os-rojo-texto, #9c2b2b);
+}
+
+/* ---------- tema oscuro ----------
+   Lo elige cada persona con el botón 🌙/☀️ de arriba; si no eligió, sigue el modo del teléfono.
+   Carbón con borde crema; los verdes y naranjas del evento quedan iguales. */
+:root[data-tema="oscuro"] {
+  --fondo: #1c1a19;
+  --tarjeta: #2a2624;
+  --borde: #4a4440;
+  --texto: #f8efe8;
+  --suave: #b5a89c;
+  --acento: #a8c83a;
+  --acento2: #f99a45;
+  --ok: #b5d44a;
+  --error: #ff8a80;
+  --linea: #f8efe8;
+  --sombra-c: rgb(0 0 0 / 0.6);
+  --os-campo: #161413;
+  --os-cabecera: rgb(28 26 25 / 0.96);
+  --os-toque: rgb(255 255 255 / 0.08);
+  --os-amarillo-fondo: #3a2f14;
+  --os-amarillo-borde: #8a6a20;
+  --os-amarillo-texto: #f5d48a;
+  --os-rojo-fondo: #4a1f1c;
+  --os-rojo-texto: #ffb3ab;
+  --os-verde-fondo: #2f3812;
+  --os-boton2: #3a3532;
+  --os-azul-fondo: #17303d;
+  --os-azul: #7cc4e4;
+  --os-naranja-fondo: #4a3018;
+  --os-naranja-fondo2: #3a2a1c;
+  --os-toast-fondo: #f8efe8;
+  --os-toast-texto: #2e2e2e;
+  --t0: #b5d44a;
+  --t1: #f99a45;
+  --t2: #7cc4e4;
+  --t3: #f08aa0;
+  --t4: #b9a0f0;
+  --t5: #6fd4c4;
+  --t6: #e0b080;
+  --t7: #f0a0d8;
+  color-scheme: dark;
+}
+
+/* El letrero es tinta negra: en oscuro se da vuelta a claro */
+:root[data-tema="oscuro"] .logo-cabecera {
+  filter: invert(1) sepia(0.2);
+}
+
+/* Botón para cambiar de tema, arriba a la derecha */
+.cabecera {
+  gap: 8px;
+}
+
+.btn-tema {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  background: var(--tarjeta);
+  border: 2px solid var(--linea);
+  border-radius: 50%;
+  box-shadow: 2px 2px 0 var(--sombra-c);
+  cursor: pointer;
+}
+
+.btn-tema:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--sombra-c);
 }

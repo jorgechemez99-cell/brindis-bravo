@@ -5,7 +5,8 @@
 //   - Admin: va al panel (con ?chat=1 se queda en el chat, como productor).
 (function () {
   "use strict";
-  const { Conexion, urlWs, idAleatorio, esc, largo, guardado, tintaDe, iconoRol } = window.Comun;
+  const { Conexion, urlWs, idAleatorio, esc, largo, guardado, nTinta, iconoRol } = window.Comun;
+  const tintaDe = (nick) => `var(--t${nTinta(nick)})`; // cada tema (claro u oscuro) tiene sus tonos
   const $ = (id) => document.getElementById(id);
 
   let disp = guardado("chat.disp");
@@ -128,6 +129,30 @@
       $("eError").textContent = e.message;
     }
   });
+
+  // ---------- tema claro u oscuro ----------
+  // Cada persona elige con 🌙/☀️ y queda guardado en su celu. Si nunca eligió, sigue el modo
+  // del teléfono (y cambia solo si el teléfono cambia). El <head> ya lo puso antes de pintar.
+  const modoTel = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
+  function ponerTema(t) {
+    document.documentElement.dataset.tema = t;
+    document.querySelector('meta[name="theme-color"]').content = t === "oscuro" ? "#1c1a19" : "#f8efe8";
+    const b = $("btnTema");
+    b.textContent = t === "oscuro" ? "☀️" : "🌙";
+    b.title = t === "oscuro" ? "Pasar a tema claro" : "Pasar a tema oscuro";
+    b.setAttribute("aria-label", b.title);
+  }
+  ponerTema(document.documentElement.dataset.tema === "oscuro" ? "oscuro" : "claro");
+  $("btnTema").addEventListener("click", () => {
+    const t = document.documentElement.dataset.tema === "oscuro" ? "claro" : "oscuro";
+    guardado("chat.tema", t);
+    ponerTema(t);
+  });
+  if (modoTel && modoTel.addEventListener)
+    modoTel.addEventListener("change", (ev) => {
+      const elegido = guardado("chat.tema");
+      if (elegido !== "claro" && elegido !== "oscuro") ponerTema(ev.matches ? "oscuro" : "claro");
+    });
 
   $("btnSalir").addEventListener("click", async () => {
     if (!confirm("¿Salir del chat? Para volver vas a necesitar tu apodo y tu clave.")) return;

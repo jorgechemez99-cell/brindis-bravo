@@ -143,6 +143,7 @@ Todo sigue la línea del flyer: fondo crema, dibujos de marcador, verde oliva y 
 - **Dibujos** (`public/marca/`): el letrero de Brindis Bravo, el sillón, la BB, el trago y el sifón, recortados de las piezas del evento. Son del diseño del evento, no de este proyecto.
 - **En la pantalla**: el título es el letrero con el programa en una etiqueta verde. Los mensajes son tarjetitas crema con borde de marcador. El destacado trae el sillón asomado: si es un 📢 de la producción, va en verde con el trago, y si es una respuesta anónima, en naranja con el sifón. El QR lleva la BB de sticker.
 - **En el celu y el panel**: los mismos colores, letras y botones tipo sticker. Al entrar aparece el sillón, y arriba de todo el letrero.
+- **Tema oscuro en el celu**: arriba a la derecha hay un botón 🌙 / ☀️. Cada persona elige y queda guardado en su celular. Si nunca lo toca, el chat sigue el modo del teléfono (claro u oscuro). Anda igual para el público, la conducción y la producción.
 - Los apodos tienen colores oscuros de la misma familia, para que se lean bien sobre el crema.
 
 El panel y la app de escritorio tienen además un **tema oscuro** para la pantalla (ver [Armar la pantalla](#armar-la-pantalla)).
@@ -237,6 +238,7 @@ Silenciados no pueden responder; las respuestas de los vetados no las ve nadie.
 - **Alguien molesta**: ✕ para borrar, *Silenciar* un rato o *Vetar*.
 - **Hay que cortar ya**: **🙈 Ocultar** en la botonera saca todo de la vista; *Pausar chat* deja de recibir; *Aprobar antes de mostrar* hace que nada salga sin un OK.
 - **Se colgó la app**: menú del globito → *Recargar*, o cerrarla y abrirla.
+- **Una versión nueva salió mal**: en Cloudflare, *Workers & Pages* → **brindis-bravo** → *Deployments*, elegir la versión anterior y apretar **Rollback**. Vuelve en segundos y no toca los mensajes ni las cuentas. Además, cada versión importante queda guardada en GitHub con una etiqueta `respaldo-…` (por ejemplo, `respaldo-publicado-2026-11-04`: la que estaba antes de la estética del flyer).
 - **Alguien se olvidó la clave del chat**: en su celular la sesión dura 30 días, así que casi nunca hace falta. Desde otro celular puede crearse una cuenta nueva.
 
 ## Límites del plan gratis
