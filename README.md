@@ -144,6 +144,7 @@ Todo sigue la línea del flyer: fondo crema, dibujos de marcador, verde oliva y 
 - **En la pantalla**: el título es el letrero con el programa en una etiqueta verde. Los mensajes son tarjetitas crema con borde de marcador. El destacado trae el sillón asomado: si es un 📢 de la producción, va en verde con el trago, y si es una respuesta anónima, en naranja con el sifón. El QR lleva la BB de sticker.
 - **En el celu y el panel**: los mismos colores, letras y botones tipo sticker. Al entrar aparece el sillón, y arriba de todo el letrero.
 - **Tema oscuro en el celu**: arriba a la derecha hay un botón 🌙 / ☀️. Cada persona elige y queda guardado en su celular. Si nunca lo toca, el chat sigue el modo del teléfono (claro u oscuro). Anda igual para el público, la conducción y la producción.
+- **Tema oscuro en el panel**: el mismo botón 🌙 / ☀️, arriba a la derecha, al lado del nombre. Es la misma elección que en el chat de ese aparato. No cambia la pantalla del bar: esa tiene su propio interruptor, *Tema oscuro en la pantalla*, en la pestaña **Pantalla** (lo pueden tocar el admin y producción; conducción no entra al panel). El QR siempre se imprime en claro.
 - Los apodos tienen colores oscuros de la misma familia, para que se lean bien sobre el crema.
 
 El panel y la app de escritorio tienen además un **tema oscuro** para la pantalla (ver [Armar la pantalla](#armar-la-pantalla)).

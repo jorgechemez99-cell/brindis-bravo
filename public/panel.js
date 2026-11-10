@@ -1,8 +1,37 @@
 // Panel de producción: moderar, destacar, encuestas, ajustes de pantalla y admin.
 (function () {
   "use strict";
-  const { Conexion, urlWs, esc, tintaDe, svgQR, servidor, iconoRol, ROLES } = window.Comun;
+  const { Conexion, urlWs, esc, nTinta, svgQR, servidor, iconoRol, ROLES } = window.Comun;
+  const tintaDe = (nick) => `var(--t${nTinta(nick)})`; // cada tema (claro u oscuro) tiene sus tonos
   const $ = (id) => document.getElementById(id);
+
+  // ---------- tema claro u oscuro (del panel, no de la pantalla) ----------
+  // Se guarda en este aparato, compartido con el chat. Si nunca se eligió, sigue el modo del sistema.
+  const modoSistema = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
+  function ponerTema(t) {
+    document.documentElement.dataset.tema = t;
+    document.querySelector('meta[name="theme-color"]').content = t === "oscuro" ? "#1c1a19" : "#f8efe8";
+    const b = $("btnTema");
+    b.textContent = t === "oscuro" ? "☀️" : "🌙";
+    b.title = t === "oscuro" ? "Panel en tema claro" : "Panel en tema oscuro";
+    b.setAttribute("aria-label", b.title);
+  }
+  ponerTema(document.documentElement.dataset.tema === "oscuro" ? "oscuro" : "claro");
+  $("btnTema").addEventListener("click", () => {
+    const t = document.documentElement.dataset.tema === "oscuro" ? "claro" : "oscuro";
+    try {
+      localStorage.setItem("chat.tema", t);
+    } catch {}
+    ponerTema(t);
+  });
+  if (modoSistema && modoSistema.addEventListener)
+    modoSistema.addEventListener("change", (ev) => {
+      let elegido = null;
+      try {
+        elegido = localStorage.getItem("chat.tema");
+      } catch {}
+      if (elegido !== "claro" && elegido !== "oscuro") ponerTema(ev.matches ? "oscuro" : "claro");
+    });
 
   const S = {
     yo: null,

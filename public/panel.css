@@ -12,7 +12,18 @@
   --verde: #86a80c;
   --naranja: #f99a45;
   --mano: 16px 7px 14px 8px / 8px 15px 7px 16px;
-  --sombra: 3px 3px 0 var(--tinta);
+  --sombra: 3px 3px 0 var(--sombra-c);
+  --linea: var(--tinta); /* borde de marcador */
+  --sombra-c: var(--tinta); /* sombra corrida */
+  /* colores de los apodos (el tema oscuro tiene los suyos) */
+  --t0: #5d7a00;
+  --t1: #c45f12;
+  --t2: #2f6f9f;
+  --t3: #a8324f;
+  --t4: #6d4ba0;
+  --t5: #1f7a6e;
+  --t6: #8a5a2b;
+  --t7: #b0428a;
   color-scheme: light;
 }
 
@@ -52,7 +63,7 @@ select,
 textarea {
   font: inherit;
   color: var(--texto);
-  background: #ffffff;
+  background: var(--os-campo, #ffffff);
   border: 1px solid var(--borde);
   border-radius: 10px;
   padding: 9px 11px;
@@ -83,7 +94,7 @@ label > select {
   font: inherit;
   font-weight: 700;
   color: var(--tinta);
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
   border-radius: var(--mano);
   padding: 9px 17px;
   background: var(--verde);
@@ -98,7 +109,7 @@ label > select {
 }
 
 .boton.secundario {
-  background: #f1e6dc;
+  background: var(--os-boton2, #f1e6dc);
 }
 
 .boton.ok {
@@ -106,8 +117,8 @@ label > select {
 }
 
 .boton.peligro {
-  background: #f7d9d6;
-  color: #9c2b2b;
+  background: var(--os-rojo-fondo, #f7d9d6);
+  color: var(--os-rojo-texto, #9c2b2b);
 }
 
 .boton:disabled {
@@ -137,7 +148,7 @@ label > select {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #efe3d8;
+  background: var(--os-chip, #efe3d8);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
@@ -149,12 +160,12 @@ label > select {
 }
 
 .chip.verde {
-  background: #e6efc4;
+  background: var(--os-verde-fondo, #e6efc4);
   color: var(--ok);
 }
 
 .chip.amarillo {
-  background: #fde3c8;
+  background: var(--os-naranja-fondo, #fde3c8);
   color: var(--acento2);
 }
 
@@ -168,9 +179,9 @@ label > select {
   margin: 12px 16px 0;
   padding: 10px 14px;
   border-radius: 10px;
-  background: #fff1dc;
+  background: var(--os-amarillo-fondo, #fff1dc);
   border: 2px solid var(--naranja);
-  color: #6e3b08;
+  color: var(--os-amarillo-texto, #6e3b08);
 }
 
 .error {
@@ -213,7 +224,7 @@ label > select {
   align-items: center;
   gap: 10px 18px;
   padding: 10px 16px;
-  background: rgb(248 239 232 / 0.95);
+  background: var(--os-barra, rgb(248 239 232 / 0.95));
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--borde);
 }
@@ -270,7 +281,7 @@ label > select {
   width: 42px;
   height: 24px;
   border-radius: 999px;
-  background: #d6c7b9;
+  background: var(--os-interruptor, #d6c7b9);
   border: 0;
   padding: 0;
   position: relative;
@@ -419,8 +430,8 @@ main {
 }
 
 .item.prod {
-  border-color: #b9cc78;
-  background: #f1f5df;
+  border-color: var(--os-verde-borde, #b9cc78);
+  background: var(--os-verde-fondo2, #f1f5df);
 }
 
 .item.borrado,
@@ -513,7 +524,7 @@ body.sin-control #cajaDestacado button {
   padding: 6px 10px;
   margin: 4px 0;
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--os-campo, #ffffff);
   overflow: hidden;
 }
 
@@ -865,8 +876,8 @@ label.rol b {
   margin-top: 16px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #eef4d8;
-  border: 1px solid #b9cc78;
+  background: var(--os-verde-fondo2, #eef4d8);
+  border: 1px solid var(--os-verde-borde, #b9cc78);
 }
 
 .acceso p {
@@ -945,8 +956,8 @@ label.rol b {
   max-width: calc(100vw - 32px);
   padding: 12px 18px;
   border-radius: 12px;
-  background: var(--tinta);
-  color: #f8efe8;
+  background: var(--os-toast-fondo, var(--tinta));
+  color: var(--os-toast-texto, #f8efe8);
   font-weight: 700;
   box-shadow: 0 8px 30px rgb(0 0 0 / 0.25);
 }
@@ -998,23 +1009,23 @@ h2 {
 }
 
 .tarjeta {
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--linea);
   border-radius: var(--mano);
   box-shadow: var(--sombra);
 }
 
 .barra {
-  border-bottom: 2px solid var(--tinta);
+  border-bottom: 2px solid var(--linea);
 }
 
 .boton:active:not(:disabled) {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--tinta);
+  box-shadow: 1px 1px 0 var(--sombra-c);
 }
 
 .boton.peligro {
-  border-color: #9c2b2b;
-  box-shadow: 3px 3px 0 #9c2b2b;
+  border-color: var(--os-rojo-texto, #9c2b2b);
+  box-shadow: 3px 3px 0 var(--os-rojo-texto, #9c2b2b);
 }
 
 .chip,
@@ -1052,4 +1063,84 @@ h2 {
   display: block;
   width: min(180px, 50%);
   margin: 14px auto 0;
+}
+
+/* ---------- tema oscuro ----------
+   Botón 🌙/☀️ arriba. Es la misma elección que en el chat de ese aparato; si nunca se eligió,
+   sigue el modo de la compu o del teléfono. Al imprimir el QR, siempre claro. */
+@media screen {
+  :root[data-tema="oscuro"] {
+    --fondo: #1c1a19;
+    --tarjeta: #2a2624;
+    --borde: #4a4440;
+    --texto: #f8efe8;
+    --suave: #b5a89c;
+    --acento: #a8c83a;
+    --acento2: #f99a45;
+    --ok: #b5d44a;
+    --rojo: #ff8a80;
+    --linea: #f8efe8;
+    --sombra-c: rgb(0 0 0 / 0.6);
+    --os-campo: #161413;
+    --os-barra: rgb(28 26 25 / 0.95);
+    --os-boton2: #3a3532;
+    --os-rojo-fondo: #4a1f1c;
+    --os-rojo-texto: #ffb3ab;
+    --os-chip: #3a3532;
+    --os-verde-fondo: #2f3812;
+    --os-verde-fondo2: #262c12;
+    --os-verde-borde: #5d7a00;
+    --os-naranja-fondo: #4a3018;
+    --os-amarillo-fondo: #3a2f14;
+    --os-amarillo-texto: #f5d48a;
+    --os-interruptor: #4a4440;
+    --os-toast-fondo: #f8efe8;
+    --os-toast-texto: #2e2e2e;
+    --t0: #b5d44a;
+    --t1: #f99a45;
+    --t2: #7cc4e4;
+    --t3: #f08aa0;
+    --t4: #b9a0f0;
+    --t5: #6fd4c4;
+    --t6: #e0b080;
+    --t7: #f0a0d8;
+    color-scheme: dark;
+  }
+
+  /* El letrero es tinta negra: en oscuro se da vuelta a claro */
+  :root[data-tema="oscuro"] .marca-login {
+    filter: invert(1) sepia(0.2);
+  }
+}
+
+.btn-tema {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  background: var(--tarjeta);
+  border: 2px solid var(--linea);
+  border-radius: 50%;
+  box-shadow: 2px 2px 0 var(--sombra-c);
+  cursor: pointer;
+}
+
+.btn-tema:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--sombra-c);
+}
+
+/* Botones secundarios: letra del tema (en claro es la misma tinta de siempre) */
+.boton.secundario {
+  color: var(--texto);
+}
+
+@media screen {
+  /* sobre el rojo claro del tema oscuro, letra oscura */
+  :root[data-tema="oscuro"] .chip.rojo,
+  :root[data-tema="oscuro"] .toast.malo {
+    color: #2e2e2e;
+  }
 }

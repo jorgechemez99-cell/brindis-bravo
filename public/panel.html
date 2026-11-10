@@ -6,6 +6,17 @@
 <meta name="theme-color" content="#f8efe8">
 <meta name="robots" content="noindex">
 <title>Brindis Bravo · Producción</title>
+<script>
+  // Tema antes de pintar (así no parpadea): el elegido con 🌙/☀️ en este aparato o, si nunca se
+  // eligió, el modo de la compu o del teléfono. Es la misma elección que en el chat.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("chat.tema"); } catch (e) {}
+    if (t !== "claro" && t !== "oscuro") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
+    document.documentElement.dataset.tema = t;
+    if (t === "oscuro") document.querySelector('meta[name="theme-color"]').content = "#1c1a19";
+  })();
+</script>
 <link rel="icon" href="marca/icono-64.png">
 <link rel="apple-touch-icon" href="marca/icono-180.png">
 <link rel="stylesheet" href="fuentes/fuentes.css">
@@ -61,7 +72,7 @@
       <span id="cPublico" class="chip"></span>
       <span id="cConexion" class="chip"></span>
     </div>
-    <div class="yo"><span id="yo"></span> <a class="link" href="/?chat=1">💬 Chat</a> <button id="btnMiClave" class="link">Mi clave</button> <button id="btnSalir" class="link">Salir</button></div>
+    <div class="yo"><button id="btnTema" class="btn-tema" type="button"></button> <span id="yo"></span> <a class="link" href="/?chat=1">💬 Chat</a> <button id="btnMiClave" class="link">Mi clave</button> <button id="btnSalir" class="link">Salir</button></div>
   </header>
 
   <div id="avisoClave" class="aviso" hidden>Tu clave es muy fácil de adivinar. Antes del show cambiala tocando <button class="link abrirMiClave">Mi clave</button>, acá arriba.</div>
@@ -137,7 +148,7 @@
       </div>
       <div class="visibles">
         <label class="interruptor"><input type="checkbox" id="chkFijos"><span>Los mensajes quedan hasta que los empujen otros nuevos</span></label>
-        <label class="interruptor"><input type="checkbox" id="chkOscuro"><span>Tema oscuro</span></label>
+        <label class="interruptor"><input type="checkbox" id="chkOscuro"><span>Tema oscuro en la pantalla</span></label>
       </div>
       <div class="lienzo" id="lienzo">
         <div class="fondo-muestra"><span>Lo que proyectan</span></div>
