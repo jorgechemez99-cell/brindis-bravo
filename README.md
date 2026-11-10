@@ -127,10 +127,11 @@ Se puede hacer **directo sobre la pantalla real** con la app (**✏️ Editar**,
 - **En pantalla**: mostrar u ocultar el chat, la encuesta, el destacado, el QR, el título y el **contador de gente**.
 - **Los mensajes quedan hasta que los empujen otros nuevos**: prendido, los mensajes no se van por tiempo; sólo salen cuando llegan otros y no entran (la cantidad la marca *Mensajes a la vez*). Apagado, cada mensaje dura lo que diga *Cada mensaje queda* (45 s).
 - **Vista previa**: arrastrá cada recuadro para moverlo y tirá de bordes o esquinas para agrandarlo. En la encuesta y el destacado la letra se acomoda sola; el QR siempre queda cuadrado.
-- **Controles**: opacidad, fondos, letra, mensajes a la vez, duración de los mensajes, cuánto queda el destacado (10 s; en 0 queda hasta quitarlo), tamaño del QR, espera entre mensajes de una misma persona.
+- **Tema oscuro**: cambia la pantalla de crema a carbón con borde crema. Es útil si lo que proyectan es oscuro. El QR y el letrero quedan siempre claros, para que se lean y se escaneen.
+- **Controles**: opacidad, fondos (de la ventana, de cada mensaje y de la encuesta, cada uno de 0 a 100 %), letra, mensajes a la vez, duración de los mensajes, cuánto queda el destacado (10 s; en 0 queda hasta quitarlo), tamaño del QR, espera entre mensajes de una misma persona.
 - **Dirección que abre el QR**: si se deja vacía, el QR lleva a este mismo sitio. El QR para imprimir está en la pestaña **QR**.
 
-Todo se aplica en vivo.
+Todo se aplica en vivo. Si el fondo de los mensajes o de la encuesta queda muy transparente, las letras llevan un halo suave para que se sigan leyendo sobre lo que se proyecta.
 
 Todo entra y sale con animaciones suaves: los mensajes se deslizan y el resto se corre de a poco, el destacado aparece con una subida suave, la encuesta y el QR entran y se van con un deslizamiento corto (también al prenderlos o apagarlos), y el contador de gente late cuando cambia. Si la compu tiene activado "reducir movimiento", no se anima nada.
 
@@ -144,7 +145,9 @@ Todo sigue la línea del flyer: fondo crema, dibujos de marcador, verde oliva y 
 - **En el celu y el panel**: los mismos colores, letras y botones tipo sticker. Al entrar aparece el sillón, y arriba de todo el letrero.
 - Los apodos tienen colores oscuros de la misma familia, para que se lean bien sobre el crema.
 
-Para cambiar colores o letras: las variables están al principio de `pantalla.css`, `publico.css` y `panel.css`.
+El panel y la app de escritorio tienen además un **tema oscuro** para la pantalla (ver [Armar la pantalla](#armar-la-pantalla)).
+
+Para cambiar colores o letras: las variables están al principio de `pantalla.css`, `publico.css` y `panel.css`. En `pantalla.css`, el tema oscuro es el bloque `:root[data-tema="oscuro"]`.
 
 ## La app de escritorio
 
@@ -162,7 +165,7 @@ xattr -cr "/Applications/Brindis Bravo.app"
 
 - **✏️ Editar ↔ 🖱 Usar la PC**:
   - En *Editar* aparecen recuadros sobre el chat, la encuesta, el destacado y el QR. Se arrastran para moverlos y se tira de los bordes para agrandarlos.
-  - Arriba hay una barra con interruptores (título, contador, mensajes fijos), opacidad, letra, fondo y *Simular mensajes*.
+  - Arriba hay una barra con interruptores (título, contador, mensajes fijos, tema oscuro), opacidad, letra, los fondos del chat, de los mensajes y de la encuesta, y *Simular mensajes*.
   - La primera vez pide el usuario y la clave del panel.
   - *Usar la PC* (o la tecla Esc) deja todo a la vista y la compu se maneja normal: los clics pasan de largo.
 - **🙈 Ocultar ↔ 👁 Mostrar**: saca todo el chat de la vista de una.

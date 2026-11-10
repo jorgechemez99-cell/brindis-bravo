@@ -658,6 +658,7 @@
     { k: "opacidad", rotulo: "Opacidad general del chat", min: 0, max: 1, paso: 0.05, fmt: pct },
     { k: "fondoVentana", rotulo: "Fondo de la ventana", min: 0, max: 1, paso: 0.05, fmt: pct },
     { k: "fondoGlobo", rotulo: "Fondo de cada mensaje", min: 0, max: 1, paso: 0.05, fmt: pct },
+    { k: "fondoEncuesta", rotulo: "Fondo de la encuesta", min: 0, max: 1, paso: 0.05, fmt: pct },
     { k: "letra", rotulo: "Tamaño de letra del chat", min: 12, max: 90, paso: 1, fmt: (v) => v + " px" },
     { k: "maxMensajes", rotulo: "Mensajes a la vez", min: 1, max: 30, paso: 1, fmt: (v) => v },
     { k: "duracion", rotulo: "Cada mensaje queda", min: 0, max: 300, paso: 5, fmt: (v) => (v ? v + " s" : "hasta que lo empujen") },
@@ -700,6 +701,7 @@
     $("chkTitulo").checked = S.ajustes.titulo !== false;
     $("chkContador").checked = S.ajustes.contador !== false;
     $("chkFijos").checked = S.ajustes.duracion === 0;
+    $("chkOscuro").checked = S.ajustes.tema === "oscuro";
     if (document.activeElement !== $("urlQR")) $("urlQR").value = S.ajustes.urlQR || "";
     posicionarMarcos();
   }
@@ -751,6 +753,14 @@
     $("ajustes").querySelector('[data-k="duracion"]').value = S.ajustes.duracion;
     $("ajustes").querySelector('[data-valor="duracion"]').textContent = DEF.find((d) => d.k === "duracion").fmt(S.ajustes.duracion);
     enviarAjustes({ duracion: S.ajustes.duracion });
+  });
+
+  // Tema de la pantalla: claro (crema, como el flyer) u oscuro.
+  $("chkOscuro").addEventListener("change", (ev) => {
+    if (!S.ajustes) return;
+    editandoHasta = Date.now() + 1200;
+    S.ajustes.tema = ev.target.checked ? "oscuro" : "claro";
+    enviarAjustes({ tema: S.ajustes.tema });
   });
 
   // Mostrar u ocultar cada caja de la pantalla.

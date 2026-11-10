@@ -4,7 +4,8 @@
 :root {
   --opacidad: 1;
   --fondo-ventana: 0.3;
-  --fondo-globo: 0.55;
+  --fondo-globo: 0.85;
+  --fondo-encuesta: 0.92;
   --letra: 30;
   /* 1 unidad = 1 píxel de una pantalla de 1080 de alto, en cualquier resolución */
   --u: calc(100vh / 1080);
@@ -17,9 +18,53 @@
   --celeste: #7cc4e4;
   /* esquinas de "dibujado a mano": cada una un poco distinta */
   --mano: 0.85em 0.35em 0.75em 0.4em / 0.4em 0.8em 0.35em 0.85em;
-  --sombra: 0.09em 0.11em 0 var(--tinta);
+
+  /* Tema claro (el del flyer). El oscuro redefine estos mismos nombres más abajo. */
+  --texto: var(--tinta);
+  --linea: var(--tinta); /* borde de marcador */
+  --sombra-c: var(--tinta); /* sombra corrida */
+  --sup: var(--papel); /* fondo de mensajes, destacado y encuesta (r g b) */
+  --sup2: var(--crema); /* fondo de la ventana, opciones y contador (r g b) */
+  --equipo: 255 236 214; /* mensajes del equipo (r g b) */
+  --nick-equipo: #c45f12;
+  --sombra-destacado: var(--tinta);
+  --barra: var(--verde);
+  --barra-gana: var(--naranja);
+  /* colores de los apodos */
+  --t0: #5d7a00;
+  --t1: #c45f12;
+  --t2: #2f6f9f;
+  --t3: #a8324f;
+  --t4: #6d4ba0;
+  --t5: #1f7a6e;
+  --t6: #8a5a2b;
+  --t7: #b0428a;
+
+  --sombra: 0.09em 0.11em 0 var(--sombra-c);
   --redonda: "Baloo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "DM Mono", ui-monospace, Menlo, monospace;
+}
+
+/* Tema oscuro: carbón con borde crema, los mismos verdes y naranjas */
+:root[data-tema="oscuro"] {
+  --texto: #f8efe8;
+  --linea: #f8efe8;
+  --sombra-c: rgb(0 0 0 / 0.55);
+  --sup: 38 35 33;
+  --sup2: 24 22 21;
+  --equipo: 74 50 30;
+  --nick-equipo: #f99a45;
+  --sombra-destacado: var(--naranja);
+  --barra: #5d7a00;
+  --barra-gana: #c45f12;
+  --t0: #b5d44a;
+  --t1: #f99a45;
+  --t2: #7cc4e4;
+  --t3: #f08aa0;
+  --t4: #b9a0f0;
+  --t5: #6fd4c4;
+  --t6: #e0b080;
+  --t7: #f0a0d8;
 }
 
 html,
@@ -32,7 +77,7 @@ body {
 
 body {
   font-family: var(--redonda);
-  color: var(--tinta);
+  color: var(--texto);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -59,7 +104,7 @@ body {
   overflow: hidden;
   padding: 0.45em 0.5em 0.55em;
   border-radius: 0.9em 0.5em 0.85em 0.55em / 0.55em 0.9em 0.5em 0.85em;
-  background: rgb(var(--crema) / var(--fondo-ventana));
+  background: rgb(var(--sup2) / var(--fondo-ventana));
 }
 
 /* Título: el letrero del evento, el programa en una etiqueta verde y el contador */
@@ -115,8 +160,8 @@ body {
   font-size: 0.62em;
   font-weight: 500;
   letter-spacing: 0.08em;
-  background: rgb(var(--crema));
-  border: 0.1em solid var(--tinta);
+  background: rgb(var(--sup2));
+  border: 0.1em solid var(--linea);
   border-radius: var(--mano);
   box-shadow: var(--sombra);
 }
@@ -139,8 +184,8 @@ body {
 
 /* Cada mensaje es un sticker crema con borde de marcador */
 .msj {
-  background: rgb(var(--papel) / max(0.82, var(--fondo-globo)));
-  border: 0.07em solid var(--tinta);
+  background: rgb(var(--sup) / var(--fondo-globo));
+  border: 0.07em solid var(--linea);
   border-radius: var(--mano);
   box-shadow: var(--sombra);
   padding: 0.28em 0.6em 0.3em;
@@ -171,21 +216,38 @@ body {
   font-weight: 600;
 }
 
+/* Si el fondo del mensaje es muy transparente, un halo suave detrás de las letras
+   las despega de lo que se proyecta (con fondo lleno no se nota). */
+.msj .nick,
+.msj .texto {
+  --halo: rgb(var(--sup) / calc(1 - var(--fondo-globo)));
+  text-shadow:
+    0 0 0.12em var(--halo),
+    0 0 0.3em var(--halo);
+}
+
 .msj.equipo {
-  background: rgb(255 236 214 / max(0.85, var(--fondo-globo)));
+  background: rgb(var(--equipo) / var(--fondo-globo));
 }
 
 .msj.equipo .nick {
-  color: #c45f12;
+  color: var(--nick-equipo);
 }
 
 .msj .icono-rol {
   margin-right: 0.25em;
 }
 
-/* Aviso de la producción: sticker verde */
+/* Aviso de la producción: sticker verde (siempre lleno, para que se note) */
 .msj.prod {
   background: var(--verde);
+  color: var(--tinta);
+  border-color: var(--tinta);
+}
+
+.msj.prod .nick,
+.msj.prod .texto {
+  text-shadow: none;
 }
 
 .msj.prod .nick::before {
@@ -294,10 +356,10 @@ body {
   max-width: 100%;
   padding: 0.55em 1em 0.6em;
   text-align: center;
-  background: rgb(var(--papel));
-  border: 0.07em solid var(--tinta);
+  background: rgb(var(--sup));
+  border: 0.07em solid var(--linea);
   border-radius: var(--mano);
-  box-shadow: 0.1em 0.12em 0 var(--tinta);
+  box-shadow: 0.1em 0.12em 0 var(--sombra-destacado);
   animation: aparece 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -329,6 +391,12 @@ body {
 }
 
 /* Aviso de la producción: tarjeta verde con el trago */
+#destacado.prod,
+#destacado.anonima {
+  color: var(--tinta);
+  border-color: var(--tinta);
+}
+
 #destacado.prod {
   background: var(--verde);
 }
@@ -409,10 +477,18 @@ body {
   position: absolute;
   box-sizing: border-box;
   overflow: hidden;
-  background: rgb(var(--papel) / max(0.92, var(--fondo-ventana)));
-  border: 0.35vh solid var(--tinta);
+  background: rgb(var(--sup) / var(--fondo-encuesta));
+  border: 0.35vh solid var(--linea);
   border-radius: 2.4vh 1vh 2.1vh 1.2vh / 1.2vh 2.3vh 1vh 2.4vh;
-  box-shadow: 0.45vh 0.55vh 0 var(--tinta);
+  box-shadow: 0.45vh 0.55vh 0 var(--sombra-c);
+}
+
+/* Mismo halo que los mensajes, por si el fondo de la encuesta está muy transparente */
+#encuesta .dentro {
+  --halo: rgb(var(--sup) / calc(1 - var(--fondo-encuesta)));
+  text-shadow:
+    0 0 0.12em var(--halo),
+    0 0 0.3em var(--halo);
 }
 
 #encuesta .dentro {
@@ -434,10 +510,10 @@ body {
   gap: 0.6em;
   margin: 0.34em 0;
   padding: 0.22em 0.55em 0.18em;
-  border: 0.07em solid var(--tinta);
+  border: 0.07em solid var(--linea);
   border-radius: var(--mano);
   overflow: hidden;
-  background: rgb(var(--crema));
+  background: rgb(var(--sup2) / var(--fondo-encuesta));
   font-weight: 700;
 }
 
@@ -445,12 +521,12 @@ body {
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background: var(--verde);
+  background: var(--barra);
   transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .opc.gana .barra {
-  background: var(--naranja);
+  background: var(--barra-gana);
 }
 
 .opc span {

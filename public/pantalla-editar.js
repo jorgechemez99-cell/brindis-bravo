@@ -11,6 +11,8 @@
     { k: "opacidad", nombre: "Opacidad", min: 0.1, max: 1, paso: 0.05, fmt: (v) => Math.round(v * 100) + "%" },
     { k: "letra", nombre: "Letra del chat", min: 12, max: 90, paso: 1, fmt: (v) => v + " px" },
     { k: "fondoVentana", nombre: "Fondo del chat", min: 0, max: 1, paso: 0.05, fmt: (v) => Math.round(v * 100) + "%" },
+    { k: "fondoGlobo", nombre: "Fondo de los mensajes", min: 0, max: 1, paso: 0.05, fmt: (v) => Math.round(v * 100) + "%" },
+    { k: "fondoEncuesta", nombre: "Fondo de la encuesta", min: 0, max: 1, paso: 0.05, fmt: (v) => Math.round(v * 100) + "%" },
   ];
   const r1 = (v) => Math.round(v * 10) / 10;
   let activa = false;
@@ -41,6 +43,7 @@
           <label><input type="checkbox" data-titulo> Título</label>
           <label><input type="checkbox" data-contador> Contador de gente</label>
           <label title="Los mensajes no se van por tiempo: sólo cuando los empujan otros nuevos"><input type="checkbox" data-fijos> Mensajes fijos</label>
+          <label><input type="checkbox" data-oscuro> Tema oscuro</label>
         </div>
         <div class="fila-ed">
           ${DESLIZADORES.map((d) => `<label>${d.nombre} <input type="range" data-k="${d.k}" min="${d.min}" max="${d.max}" step="${d.paso}"> <b data-valor="${d.k}"></b></label>`).join("")}
@@ -154,6 +157,7 @@
     $("input[data-titulo]").checked = a.titulo !== false;
     $("input[data-contador]").checked = a.contador !== false;
     $("input[data-fijos]").checked = a.duracion === 0;
+    $("input[data-oscuro]").checked = a.tema === "oscuro";
     for (const d of DESLIZADORES) {
       const i = $(`input[data-k="${d.k}"]`);
       if (document.activeElement !== i) i.value = a[d.k];
@@ -226,6 +230,7 @@
     else if ("titulo" in i.dataset) cambiar({ titulo: i.checked });
     else if ("contador" in i.dataset) cambiar({ contador: i.checked });
     else if ("fijos" in i.dataset) cambiar({ duracion: i.checked ? 0 : 45 });
+    else if ("oscuro" in i.dataset) cambiar({ tema: i.checked ? "oscuro" : "claro" });
   });
   raiz.addEventListener("input", (ev) => {
     const k = ev.target.dataset.k;

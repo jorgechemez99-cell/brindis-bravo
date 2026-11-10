@@ -21,9 +21,15 @@
   // Colores de apodo para fondos claros (la estética crema del evento): tintas que se leen bien.
   const TINTAS = ["#5d7a00", "#c45f12", "#2f6f9f", "#a8324f", "#6d4ba0", "#1f7a6e", "#8a5a2b", "#b0428a"];
   function tintaDe(nick) {
+    return TINTAS[nTinta(nick)];
+  }
+
+  // Qué color le toca a cada apodo (0 a 7). La pantalla lo usa como var(--t0)…var(--t7),
+  // para que el tema claro y el oscuro tengan cada uno sus tonos.
+  function nTinta(nick) {
     let h = 7;
     for (const c of String(nick)) h = (h * 31 + c.codePointAt(0)) >>> 0;
-    return TINTAS[h % TINTAS.length];
+    return h % TINTAS.length;
   }
 
   // Ícono de cada rol del equipo, al lado del apodo (en la pantalla, el chat y el panel).
@@ -203,5 +209,5 @@
     }
   }
 
-  window.Comun = { Conexion, idAleatorio, servidor, urlWs, tintaDe, esc, largo, guardado, svgQR, iconoRol, ROLES };
+  window.Comun = { Conexion, idAleatorio, servidor, urlWs, tintaDe, nTinta, esc, largo, guardado, svgQR, iconoRol, ROLES };
 })();

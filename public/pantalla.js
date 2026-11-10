@@ -3,7 +3,8 @@
 // o como vista previa en el panel (?vista=1).
 (function () {
   "use strict";
-  const { Conexion, urlWs, servidor, tintaDe, esc, svgQR, iconoRol } = window.Comun;
+  const { Conexion, urlWs, servidor, nTinta, esc, svgQR, iconoRol } = window.Comun;
+  const tintaDe = (nick) => `var(--t${nTinta(nick)})`; // el tono depende del tema
   const vista = new URLSearchParams(location.search).get("vista") === "1";
   const $ = (id) => document.getElementById(id);
   const raiz = document.documentElement;
@@ -51,6 +52,8 @@
     raiz.style.setProperty("--opacidad", a.opacidad);
     raiz.style.setProperty("--fondo-ventana", a.fondoVentana);
     raiz.style.setProperty("--fondo-globo", a.fondoGlobo);
+    raiz.style.setProperty("--fondo-encuesta", a.fondoEncuesta ?? 0.92);
+    raiz.dataset.tema = a.tema === "oscuro" ? "oscuro" : "claro";
     raiz.style.setProperty("--letra", a.letra);
     ubicar($("ventana"), a.ventana);
     ubicar($("encuesta"), a.encuesta);

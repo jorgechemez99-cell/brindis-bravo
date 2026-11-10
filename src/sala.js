@@ -10,7 +10,9 @@ const DURACION_SESION = 30 * 86400000;
 const AJUSTES_INICIALES = {
   opacidad: 1, // toda la capa del chat
   fondoVentana: 0.3, // fondo de la ventana que contiene los mensajes
-  fondoGlobo: 0.55, // fondo de cada mensaje
+  fondoGlobo: 0.85, // fondo de cada mensaje
+  fondoEncuesta: 0.92, // fondo de la caja de la encuesta
+  tema: "claro", // "claro" (crema, como el flyer) u "oscuro"
   letra: 30, // en píxeles sobre una pantalla de 1080 de alto
   maxMensajes: 7,
   duracion: 45, // segundos en pantalla; 0 = no se van solos
@@ -32,6 +34,8 @@ const LIMITES = {
   opacidad: [0, 1],
   fondoVentana: [0, 1],
   fondoGlobo: [0, 1],
+  fondoEncuesta: [0, 1],
+  tema: new Set(["claro", "oscuro"]),
   letra: [12, 90],
   maxMensajes: [1, 30],
   duracion: [0, 900],
@@ -148,6 +152,13 @@ export class Sala extends DurableObject {
       const a = this.leer("ajustes");
       if (a && (!a.destacadoSeg || a.destacadoSeg > 10)) this.guardar("ajustes", { ...a, destacadoSeg: 10 });
       this.guardar("version", 5);
+    }
+    if (this.leer("version", 1) < 6) {
+      // Con la estética del flyer, el fondo de los mensajes tenía un piso del 82 % que no dejaba
+      // bajarlo. Se sacó el piso: para que la pantalla se vea igual que antes, se arranca de 85 %.
+      const a = this.leer("ajustes");
+      if (a && !(a.fondoGlobo >= 0.82)) this.guardar("ajustes", { ...a, fondoGlobo: 0.85 });
+      this.guardar("version", 6);
     }
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_autor ON mensajes (autor)");
     this.sql.exec("CREATE INDEX IF NOT EXISTS mensajes_ts ON mensajes (ts)");
@@ -1482,6 +1493,9 @@ function sanear(actual, parcial, limites) {
     const v = parcial[k];
     if (lim === "bool") r[k] = !!v;
     else if (lim === "texto") r[k] = String(v ?? "").trim().slice(0, 300);
+    else if (lim instanceof Set) {
+      if (lim.has(v)) r[k] = v;
+    }
     else if (Array.isArray(lim)) {
       const n = Number(v);
       if (Number.isFinite(n)) r[k] = Math.max(lim[0], Math.min(lim[1], n));
