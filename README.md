@@ -20,6 +20,7 @@ Corre gratis en **Cloudflare**: no hace falta servidor propio, la dirección no 
 - [Armar la pantalla](#armar-la-pantalla)
 - [La estética del evento](#la-estética-del-evento)
 - [La app de escritorio](#la-app-de-escritorio)
+- [La app para tablet](#la-app-para-tablet)
 - [Encuestas](#encuestas)
 - [Ensayo y noche del show](#ensayo-y-noche-del-show)
 - [Si algo falla](#si-algo-falla)
@@ -194,6 +195,33 @@ xattr -cr "/Applications/Brindis Bravo.app"
 - **Windows**: si la capa sale negra en vez de transparente, cerrar la app, crear el archivo `%APPDATA%\Brindis Bravo\config.json` con `{"sinAceleracion": true}` y volver a abrirla.
 - **Con OBS**, en vez de la app: *Fuente de navegador* con la dirección `/pantalla` del sitio, de 1920×1080. El fondo ya es transparente.
 
+## La app para tablet
+
+Para manejar el show desde una tablet (probada en el tamaño de una Samsung, acostada y parada), hay una app aparte: **`/control`**. Por ejemplo, https://brindis-bravo.brindis-bravo.workers.dev/control. Es para el admin y para producción; conducción sigue usando el chat del celu.
+
+**Instalarla** (una sola vez): abrí esa dirección en la tablet con Chrome o con Samsung Internet, entrá con tu usuario del panel y, en el menú del navegador, tocá **Instalar app** o **Agregar a pantalla de inicio**. Queda un ícono **BB Control**: abre a pantalla completa, sin las barras del navegador, y mientras está abierta la tablet no se apaga sola.
+
+**Cómo se ve**: con la tablet acostada, el chat queda siempre a la izquierda y los controles a la derecha. Parada, va una cosa por vez y las pestañas quedan abajo.
+
+**Gestos**:
+- **Deslizar un mensaje a la derecha**: lo destaca en la pantalla. Si está esperando aprobación, lo aprueba; si estaba borrado, lo vuelve a poner.
+- **Deslizarlo a la izquierda**: lo borra. Durante unos segundos aparece **Deshacer**.
+- **Tocarlo o mantenerlo apretado**: abre sus opciones grandes (destacar, borrar, silenciar 5/15/60 minutos o vetar).
+- **Deslizar de costado los controles de la derecha**: pasa de **📢 Avisos** a **📊 Encuestas**, **🖥 Pantalla** y **🛡 Moderar**.
+- **En la vista previa de la pantalla**: arrastrás cada caja con un dedo, y con dos dedos (pellizcando) la agrandás o la achicás.
+- **En una caja anónima**: deslizá una respuesta a la derecha para mostrarla en la pantalla, sin nombre.
+- **Lo delicado pide dos toques** (limpiar la pantalla, mandar un aviso rápido, borrar una encuesta, perdonar): el primero cambia el botón a "Tocá de nuevo" y el segundo lo hace.
+
+**Qué hay en cada pestaña**:
+- **📢 Avisos**: escribís el aviso y sale como 📢 en la pantalla, destacado. Hay avisos rápidos de un toque: mantené uno apretado para editarlo antes de mandarlo, o guardá el tuyo con «＋ Guardar el de arriba». También se listan los avisos de la noche, para repetirlos.
+- **📊 Encuestas**: ＋ Encuesta o ＋ Caja anónima, con «Guardar para después» o «Lanzar ya». Desde cada tarjeta se lanza, se cierra, se muestran los resultados o se saca de la pantalla.
+- **🖥 Pantalla**: qué se ve (chat, encuesta, destacado, QR, título, contador, mensajes fijos y tema oscuro), la vista previa para acomodar, todos los controles y el formato de la pantalla.
+- **🛡 Moderar**: quién está silenciado o vetado, con «Perdonar».
+
+Arriba están siempre el programa de ahora, cuántas pantallas y cuánta gente hay conectada, **Pausar chat**, **Aprobar antes** y **Limpiar pantalla**. En el menú ⋯ están el tema claro u oscuro, la pantalla completa y «Abrir el panel completo».
+
+Lo que es de una sola vez sigue en el panel completo: crear cuentas y programas, el QR para imprimir y el registro de quién escribió cada respuesta anónima. Ver [Para programadores](#para-programadores) para los archivos.
+
 ## Encuestas
 
 Desde el chat del productor (**📊 Encuestas**) o desde la pestaña **Encuestas** del panel:
@@ -330,6 +358,7 @@ npm run deploy                       # publica en Cloudflare (nunca durante un s
   - `panel.*`: el panel.
   - `pantalla.*`: la capa transparente; `pantalla-editar.js` es la edición con el mouse, que sólo se activa dentro de la app.
   - `comun.js`: la conexión que se reconecta sola, con latido y reintentos, y los colores de los apodos.
+  - `control.*`: la app para tablet (`control.webmanifest` y `control-sw.js` la hacen instalable; el service worker no guarda nada en caché).
   - `marca/` y `fuentes/`: los dibujos del evento y las letras (ver [La estética del evento](#la-estética-del-evento)).
 - `overlay/`: la app de escritorio (Electron).
   - Una ventana transparente, siempre arriba y que deja pasar los clics, más la botonera.

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#1c1a19">
+<meta name="robots" content="noindex">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Brindis Bravo · Control</title>
+<script>
+  // Tema antes de pintar: el elegido con 🌙/☀️ en este aparato o, si nunca se eligió, el del sistema.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("chat.tema"); } catch (e) {}
+    if (t !== "claro" && t !== "oscuro") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
+    document.documentElement.dataset.tema = t;
+    if (t === "claro") document.querySelector('meta[name="theme-color"]').content = "#f8efe8";
+  })();
+</script>
+<link rel="manifest" href="control.webmanifest">
+<link rel="icon" href="marca/icono-64.png">
+<link rel="apple-touch-icon" href="marca/icono-180.png">
+<link rel="stylesheet" href="fuentes/fuentes.css">
+<link rel="stylesheet" href="control.css">
+</head>
+<body>
+
+<!-- ---------- entrar ---------- -->
+<section id="login" class="login" hidden>
+  <form id="formLogin" class="tarjeta">
+    <img class="letrero" src="marca/brindis-bravo-linea.png" alt="Brindis Bravo">
+    <h1>Control del show</h1>
+    <p class="nota">Para admin y producción. Entrá con tu usuario del panel.</p>
+    <label>Usuario <input id="lUsuario" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+    <label>Clave <input id="lClave" type="password" autocomplete="current-password" required></label>
+    <button class="boton grande">Entrar</button>
+    <p id="lError" class="error"></p>
+  </form>
+</section>
+
+<!-- ---------- la app ---------- -->
+<div id="app" hidden>
+  <header class="barra">
+    <img class="letrero" src="marca/brindis-bravo-linea.png" alt="Brindis Bravo">
+    <button id="btnPrograma" class="pastilla programa" type="button"><span id="txtPrograma">Sin programa</span> ▾</button>
+    <span id="cPantallas" class="dato"></span>
+    <span id="cPublico" class="dato"></span>
+    <span id="cConexion" class="punto" title="Conexión"></span>
+    <span class="separador"></span>
+    <button id="btnPausa" class="interruptor-grande" type="button" aria-pressed="false">⏸ Pausar chat</button>
+    <button id="btnAprob" class="interruptor-grande" type="button" aria-pressed="false">✋ Aprobar antes</button>
+    <button id="btnLimpiar" class="boton-barra" type="button">🧹 Limpiar pantalla</button>
+    <button id="btnMenu" class="boton-redondo" type="button" aria-label="Más opciones">⋯</button>
+  </header>
+
+  <main class="tablero">
+    <!-- Columna del chat -->
+    <section class="columna chat" id="colChat">
+      <div id="destacadoAhora" class="destacado-ahora" hidden></div>
+      <div class="cabeza-chat">
+        <h2>Chat en vivo</h2>
+        <span id="nPendientes" class="pastilla aviso" hidden></span>
+        <span class="ayuda">Deslizá ➜ destacar · ⬅ borrar · mantené apretado para más</span>
+      </div>
+      <ul id="feed" class="feed"></ul>
+      <p id="feedVacio" class="vacio">Todavía no hay mensajes.</p>
+    </section>
+
+    <!-- Columna de controles, con pestañas que se pasan deslizando -->
+    <section class="columna controles" id="colControles">
+      <nav class="pestanas" id="pestanas">
+        <button data-tab="chat" class="solo-vertical">💬<span>Chat</span></button>
+        <button data-tab="avisos">📢<span>Avisos</span></button>
+        <button data-tab="encuestas">📊<span>Encuestas</span></button>
+        <button data-tab="pantalla">🖥<span>Pantalla</span></button>
+        <button data-tab="moderar">🛡<span>Moderar</span></button>
+      </nav>
+      <div class="hojas" id="hojas">
+
+        <!-- 📢 Avisos de producción -->
+        <div class="hoja-tab" data-tab="avisos">
+          <form id="formAviso" class="tarjeta">
+            <h3>📢 Aviso de la producción</h3>
+            <p class="nota">Sale en el chat de la pantalla y salta solo como destacado.</p>
+            <textarea id="avisoTexto" rows="3" maxlength="280" placeholder="¡Arranca el segundo bloque!"></textarea>
+            <div class="fila">
+              <span id="avisoLargo" class="nota">0 / 280</span>
+              <button class="boton grande">Mandar a la pantalla</button>
+            </div>
+          </form>
+          <div class="tarjeta">
+            <h3>Rápidos</h3>
+            <p class="nota">Tocá uno para mandarlo. Mantenelo apretado para editarlo antes.</p>
+            <div id="rapidos" class="rapidos"></div>
+          </div>
+          <div class="tarjeta">
+            <h3>Mandados hace poco</h3>
+            <ul id="avisosHechos" class="lista-simple"><li class="vacio">Todavía ninguno.</li></ul>
+          </div>
+        </div>
+
+        <!-- 📊 Encuestas y cajas anónimas -->
+        <div class="hoja-tab" data-tab="encuestas">
+          <div class="fila acciones-arriba">
+            <button id="btnNuevaEnc" class="boton grande">＋ Encuesta</button>
+            <button id="btnNuevaCaja" class="boton grande naranja">＋ Caja anónima</button>
+          </div>
+          <div id="listaEnc"></div>
+        </div>
+
+        <!-- 🖥 Pantalla -->
+        <div class="hoja-tab" data-tab="pantalla">
+          <div class="tarjeta">
+            <h3>Qué se ve</h3>
+            <div class="mosaico" id="visibles">
+              <button data-caja="ventana">💬<span>Chat</span></button>
+              <button data-caja="encuesta">📊<span>Encuesta</span></button>
+              <button data-caja="destacado">⭐<span>Destacado</span></button>
+              <button data-caja="qr">▦<span>QR</span></button>
+              <button data-k="titulo">🏷<span>Título</span></button>
+              <button data-k="contador">👥<span>Contador</span></button>
+              <button data-k="fijos">📌<span>Mensajes fijos</span></button>
+              <button data-k="oscuro">🌙<span>Tema oscuro</span></button>
+            </div>
+          </div>
+          <div class="tarjeta">
+            <h3>Acomodar</h3>
+            <p class="nota">Arrastrá cada caja con un dedo. Con dos dedos la agrandás o la achicás.</p>
+            <div class="lienzo" id="lienzo">
+              <div class="fondo-muestra"><span>Lo que proyectan</span></div>
+              <iframe id="vista" title="Vista previa de la pantalla" tabindex="-1"></iframe>
+              <div class="marco" data-caja="destacado"><span>Destacado</span></div>
+              <div class="marco" data-caja="ventana"><span>Chat</span></div>
+              <div class="marco" data-caja="encuesta"><span>Encuesta</span></div>
+              <div class="marco" data-caja="qr"><span>QR</span></div>
+            </div>
+          </div>
+          <div class="tarjeta">
+            <h3>Ajustes</h3>
+            <div id="ajustes" class="ajustes"></div>
+          </div>
+          <div class="tarjeta">
+            <h3>Tamaño de la pantalla</h3>
+            <div class="fila envolver" id="formatos">
+              <button data-f="1920x1080" class="pastilla">Full HD</button>
+              <button data-f="1280x720" class="pastilla">HD</button>
+              <button data-f="1024x512" class="pastilla">LED 4 × 2</button>
+              <button data-f="512x1024" class="pastilla">LED parada</button>
+            </div>
+            <p class="nota" id="txtFormato"></p>
+          </div>
+          <div class="fila envolver">
+            <button id="btnSimular" class="boton secundario">Simular público (8 mensajes)</button>
+          </div>
+        </div>
+
+        <!-- 🛡 Moderar -->
+        <div class="hoja-tab" data-tab="moderar">
+          <div class="tarjeta">
+            <h3>Silenciados y vetados</h3>
+            <ul id="listaBloq" class="lista-simple"></ul>
+          </div>
+          <div class="tarjeta">
+            <h3>Cómo se usa</h3>
+            <ul class="lista-simple ayuda-lista">
+              <li><b>Deslizar un mensaje a la derecha</b>: lo destaca en la pantalla.</li>
+              <li><b>Deslizar a la izquierda</b>: lo borra (con «Deshacer» unos segundos).</li>
+              <li><b>Mantenerlo apretado</b> (o tocarlo): destacar, borrar, silenciar o vetar.</li>
+              <li><b>Deslizar las pestañas de la derecha</b> de costado: pasás de Avisos a Encuestas, Pantalla y Moderar.</li>
+              <li><b>En una caja anónima</b>: deslizá una respuesta a la derecha para mostrarla en la pantalla.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Hoja de acciones de un mensaje -->
+<dialog id="hojaMsj" class="hoja">
+  <div id="hojaMsjTexto" class="hoja-texto"></div>
+  <div class="hoja-botones">
+    <button data-acc="aprobar" class="boton grande">✓ Aprobar</button>
+    <button data-acc="destacar" class="boton grande">★ Destacar en la pantalla</button>
+    <button data-acc="quitar" class="boton grande secundario">Quitar el destacado</button>
+    <button data-acc="borrar" class="boton grande secundario">🗑 Borrar</button>
+    <div class="fila tres sancion">
+      <button data-acc="silencio" data-min="5" class="boton secundario">🔇 5 min</button>
+      <button data-acc="silencio" data-min="15" class="boton secundario">🔇 15 min</button>
+      <button data-acc="silencio" data-min="60" class="boton secundario">🔇 1 hora</button>
+    </div>
+    <button data-acc="veto" class="boton grande peligro sancion">⛔ Vetar para siempre</button>
+    <button data-acc="cerrar" class="boton grande fantasma">Cancelar</button>
+  </div>
+</dialog>
+
+<!-- Elegir programa -->
+<dialog id="hojaPrograma" class="hoja">
+  <h3>¿Qué programa está ahora?</h3>
+  <p class="nota">Sale en el título del chat de la pantalla.</p>
+  <div id="listaProgramas" class="hoja-botones"></div>
+</dialog>
+
+<!-- Armar o editar una encuesta -->
+<dialog id="hojaEnc" class="hoja ancha">
+  <form id="formEnc" method="dialog">
+    <h3 id="tituloEnc">Nueva encuesta</h3>
+    <div class="fila dos tipo-enc">
+      <button type="button" data-tipo="opciones" class="pastilla">📊 Con opciones</button>
+      <button type="button" data-tipo="anonima" class="pastilla">📮 Caja anónima</button>
+    </div>
+    <label>Programa <select id="encPrograma"></select></label>
+    <label>Pregunta <input id="encPregunta" maxlength="140" required autocomplete="off"></label>
+    <div id="encConOpciones">
+      <div id="encOpciones" class="opciones-form"></div>
+      <button type="button" id="encAgregar" class="boton secundario">＋ Otra opción</button>
+    </div>
+    <p id="encError" class="error"></p>
+    <div class="fila dos">
+      <button type="button" id="encGuardar" class="boton grande secundario">Guardar para después</button>
+      <button type="button" id="encLanzar" class="boton grande">Lanzar ya</button>
+    </div>
+    <button type="button" id="encCancelar" class="boton grande fantasma">Cancelar</button>
+  </form>
+</dialog>
+
+<!-- Menú -->
+<dialog id="hojaMenu" class="hoja">
+  <h3 id="menuQuien"></h3>
+  <div class="hoja-botones">
+    <button id="btnTema" class="boton grande secundario"></button>
+    <button id="btnPantallaCompleta" class="boton grande secundario">⛶ Pantalla completa</button>
+    <button id="btnInstalar" class="boton grande secundario" hidden>📲 Instalar como app</button>
+    <a href="/panel" class="boton grande secundario">Abrir el panel completo</a>
+    <button id="btnSalir" class="boton grande peligro">Salir</button>
+    <button data-cerrar class="boton grande fantasma">Cerrar</button>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" hidden><span id="toastTexto"></span><button id="toastDeshacer" type="button" hidden>Deshacer</button></div>
+
+<script src="vendor/qrcode.js"></script>
+<script src="comun.js"></script>
+<script src="control.js"></script>
+</body>
+</html>
